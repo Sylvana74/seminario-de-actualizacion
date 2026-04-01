@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora Simple</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="calculadora">
+        <input type="text" id="pantalla" value="0" disabled>
+
+        <table>
+            <tr>
+                <td><button onclick="agregar('7')">7</button></td>
+                <td><button onclick="agregar('8')">8</button></td>
+                <td><button onclick="agregar('9')">9</button></td>
+                <td><button class="operador" onclick="agregar('+')">+</button></td>
+            </tr>
+            <tr>
+                <td><button onclick="agregar('4')">4</button></td>
+                <td><button onclick="agregar('5')">5</button></td>
+                <td><button onclick="agregar('6')">6</button></td>
+                <td><button class="operador" onclick="agregar('-')">-</button></td>
+            </tr>
+            <tr>
+                <td><button onclick="agregar('3')">3</button></td>
+                <td><button onclick="agregar('2')">2</button></td>
+                <td><button onclick="agregar('1')">1</button></td>
+                <td><button class="operador" onclick="agregar('*')">*</button></td>
+            </tr>
+            <tr>
+                <td><button onclick="agregar('0')">0</button></td>
+                <td><button onclick="agregar('.')">.</button></td>
+                <td><button class="igual" onclick="calcular()">=</button></td>
+                <td><button class="operador" onclick="agregar('/')">/</button></td>
+            </tr>
+        </table>
+
+        <button class="vestimenta-boton-borar" onclick="limpiar()">Borrar</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
