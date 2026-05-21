@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TP 1 - Ejercicio 5A (Formulario Factura AFIP)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .wrapper {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 550px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        h1 {
+            font-size: 20px;
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .instrucciones {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 20px;
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-left: 4px solid #2196f3;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <h1>Generador de Comprobantes AFIP</h1>
+        <div class="instrucciones">
+            <strong>Instrucciones:</strong> Modificá los campos si lo deseás y presioná el botón. El componente abrirá una nueva pestaña renderizando la gráfica de la Factura B con los datos estructurados.
+        </div>
+
+        <factura-form></factura-form>
+    </div>
+
+    <script src="FacturaForm.js"></script>
+</body>
+</html>

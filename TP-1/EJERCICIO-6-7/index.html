@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TP 1 - Ejercicios 6 y 7 (Datos Meteorológicos MdP)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .dashboard {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            max-width: 900px;
+            width: 100%;
+        }
+        h2 {
+            color: #1e3a8a;
+            margin-top: 0;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        .instructor-note {
+            background-color: #fef3c7;
+            border-left: 4px solid #d97706;
+            color: #92400e;
+            padding: 12px;
+            font-size: 13px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <h2>Estadísticas Climáticas Históricas - Mar del Plata</h2>
+        
+        <div class="instructor-note">
+            <strong>Evaluación de Métodos (Ej 6 y 7):</strong> La tabla expone la matriz de datos de la NOAA/SMN. El botón superior conmuta las fórmulas de conversión de escala (ºC a ºF) interrumpiendo y redibujando el DOM de forma reactiva.
+        </div>
+
+        <clima-mdp id="tablaClima"></clima-mdp>
+    </div>
+
+    <script src="ClimaMdp.js"></script>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const componenteClima = document.getElementById('tablaClima');
+            
+            // Probamos el método público requerido en el Ejercicio 6
+            if (componenteClima && typeof componenteClima.getPromedioTemperaturas === 'function') {
+                console.log("=== Ejercicio 6: Validación de Método ===");
+                console.log("Promedio obtenido mediante getPromedioTemperaturas():", componenteClima.getPromedioTemperaturas() + " °C");
+            }
+        });
+    </script>
+</body>
+</html>

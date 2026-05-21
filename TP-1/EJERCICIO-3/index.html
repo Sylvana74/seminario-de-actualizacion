@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TP 1 - Ejercicio 3 (Graphic EQ WebComponent)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #3a6ea5; /* Color de fondo clásico de Windows antiguo */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .console-box {
+            margin-top: 20px;
+            background-color: #000;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 10px;
+            border-radius: 5px;
+            width: 530px;
+            font-size: 12px;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <graphic-eq id="miEcualizador"></graphic-eq>
+
+    <div class="console-box">
+        <strong>Consola de pruebas (getData):</strong>
+        <div id="log">Esperando cambios...</div>
+    </div>
+
+    <script src="GraphicEq.js"></script>
+
+    <script>
+        const eq = document.getElementById('miEcualizador');
+        const logDiv = document.getElementById('log');
+
+        // Demostración del método setData():
+        // Simulamos que cargamos una configuración preestablecida (Preset) a los 1.5 segundos
+        setTimeout(() => {
+            const presetPop = {
+                "32Hz": 3, "64Hz": 4, "130Hz": 2, "260Hz": -1, 
+                "500Hz": -3, "1k": -2, "2k": 1, "4k": 3, "8.3k": 4, "16.5k": 5
+            };
+            
+            // Llamada al método requerido por la consigna
+            if (eq && typeof eq.setData === 'function') {
+                eq.setData(presetPop);
+                const datosActuales = eq.getData();
+                logDiv.innerHTML = `Preset 'Pop' aplicado vía setData().<br>getData() devuelve: <br>${JSON.stringify(datosActuales)}`;
+            }
+        }, 1500);
+
+        // Escuchar cambios manuales si movés los sliders
+        if (eq) {
+            eq.addEventListener('input', () => {
+                logDiv.innerHTML = `Interacción manual detectada.<br>getData() devuelve: <br>${JSON.stringify(eq.getData())}`;
+            });
+        }
+    </script>
+</body>
+</html>
+  

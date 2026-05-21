@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TP 1 - Ejercicio 4 (Chat WebComponent)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .control-panel {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            max-width: 400px;
+            width: 100%;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #04AA6D; /* Verde clásico de W3Schools */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #059669;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Interfaz de Chat Encapsulada</h2>
+
+    <chat-component id="miChat"></chat-component>
+
+    <div class="control-panel">
+        <input type="text" id="inputMensaje" placeholder="Escribí un mensaje de prueba...">
+        <button id="btnEnviar">Enviar</button>
+    </div>
+
+    <script src="ChatComponent.js"></script>
+
+    <script>
+        const chat = document.getElementById('miChat');
+        const input = document.getElementById('inputMensaje');
+        const btn = document.getElementById('btnEnviar');
+
+        // Simulación de mensajes iniciales usando el método requerido 'insertMessage'
+        // Parámetros: insertMessage(texto, lado ['left'|'right'], hora)
+        setTimeout(() => {
+            chat.insertMessage("¡Hola! ¿Cómo venís con el TP de Seminario?", "left", "11:00");
+        }, 500);
+
+        setTimeout(() => {
+            chat.insertMessage("Buenas! Ya estoy terminando de armar los WebComponents.", "right", "11:01");
+        }, 1500);
+
+        setTimeout(() => {
+            chat.insertMessage("¡Buenísimo! Avisame si te trabás con el ecualizador.", "left", "11:02");
+        }, 2500);
+
+
+        // Permitir enviar mensajes nuevos desde el input de la página
+        function enviarMensaje() {
+            const texto = input.value.trim();
+            if (texto !== "") {
+                const ahora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                // Insertamos el mensaje del usuario a la derecha
+                chat.insertMessage(texto, "right", ahora);
+                input.value = "";
+            }
+        }
+
+        btn.addEventListener('click', enviarMensaje);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') enviarMensaje();
+        });
+    </script>
+</body>
+</html>
