@@ -1,89 +1,166 @@
-class FacturaForm extends HTMLElement {
+class AfipInvoiceForm extends HTMLElement {
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
-        this.render();
+        this.formData = {};
     }
 
-    render() {
-        this.shadowRoot.innerHTML = `
-            <style>
-                form { display: flex; flex-direction: column; gap: 10px; max-width: 500px; font-family: sans-serif; }
-                .row { display: flex; gap: 10px; }
-                label { display: flex; flex-direction: column; flex: 1; font-size: 12px; }
-                input { padding: 5px; font-size: 14px; }
-                button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
-            </style>
-            <form id="afip-form">
-                <h3>Carga de Comprobante - Tipo B</h3>
-                <div class="row">
-                    <label>Punto de Venta: <input type="text" id="ptovta" value="0002"></label>
-                    <label>Nro. Comprobante: <input type="text" id="numcomp" value="00000641"></label>
-                </div>
-                <label>Fecha de Emisión: <input type="date" id="fecha" value="2016-07-27"></label>
-                <label>Razon Social Emisor: <input type="text" id="emisor" value="Prestador Salud S.A."></label>
-                <label>CUIT Receptor: <input type="text" id="cuit_rec" value="30522763922"></label>
-                <label>Denominación Receptor: <input type="text" id="razon_rec" value="INSTITUTO NACIONAL DE SERVICIOS SOCIALES PARA JUBILADOS Y PE"></label>
-                <label>Subtotal General ($): <input type="number" id="subtotal" value="336583.16" step="0.01"></label>
-                <button type="button" id="btnGenerar">Generar Factura</button>
-            </form>
+    connectedCallback() {
+        this.buildUI();
+    }
+
+    buildUI() {
+        const container = document.createElement('div');
+        container.className = 'form-container';
+
+        const style = document.createElement('style');
+        style.textContent = `
+            .form-container {
+                font-family: Arial, sans-serif;
+                max-width: 500px;
+                margin: 20px auto;
+                padding: 25px;
+                background: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 15px;
+            }
+            .form-group label {
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #2c3e50;
+            }
+            .form-group input {
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+            .btn-group {
+                display: flex;
+                gap: 10px;
+                margin-top: 20px;
+            }
+            .btn {
+                flex: 1;
+                padding: 10px;
+                border: none;
+                border-radius: 4px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            .btn-generate { background-color: #0056b3; color: white; }
+            .btn-pdf { background-color: #28a745; color: white; }
         `;
+        this.appendChild(style);
 
-        this.shadowRoot.getElementById('btnGenerar').addEventListener('click', () => this.abrirGrafica());
+        const h2 = document.createElement('h2');
+        h2.textContent = 'Carga de Factura AFIP';
+        container.appendChild(h2);
+
+        // Definimos los campos que necesitamos procesar
+        const campos = [
+            { id: 'cuit', label: 'CUIT Emisor', type: 'text' },
+            { id: 'cliente', label: 'Razón Social Cliente', type: 'text' },
+            { id: 'monto', label: 'Importe Total ($)', type: 'number' }
+        ];
+
+        this.inputs = {};
+
+        campos.forEach(campo => {
+            const group = document.createElement('div');
+            group.className = 'form-group';
+
+            const label = document.createElement('label');
+            label.textContent = campo.label;
+
+            const input = document.createElement('input');
+            input.type = campo.type;
+            input.id = campo.id;
+
+            group.appendChild(label);
+            group.appendChild(input);
+            container.appendChild(group);
+
+            // Guardamos referencias limpias
+            this.inputs[campo.id] = input;
+        });
+
+        // Botonera de acciones
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'btn-group';
+
+        const btnGen = document.createElement('button');
+        btnGen.className = 'btn btn-generate';
+        btnGen.textContent = 'Generar Factura (Nueva Pestaña)';
+        btnGen.addEventListener('click', () => this.abrirPestañaGrafica());
+
+        const btnPdf = document.createElement('button');
+        btnPdf.className = 'btn btn-pdf';
+        btnPdf.textContent = 'Imprimir / Guardar PDF';
+        btnPdf.addEventListener('click', () => this.exportarDirectoPDF());
+
+        btnGroup.appendChild(btnGen);
+        btnGroup.appendChild(btnPdf);
+        container.appendChild(btnGroup);
+
+        this.appendChild(container);
     }
 
-    abrirGrafica() {
-        const datos = {
-            ptovta: this.shadowRoot.getElementById('ptovta').value,
-            numcomp: this.shadowRoot.getElementById('numcomp').value,
-            fecha: this.shadowRoot.getElementById('fecha').value,
-            emisor: this.shadowRoot.getElementById('emisor').value,
-            cuit_rec: this.shadowRoot.getElementById('cuit_rec').value,
-            razon_rec: this.shadowRoot.getElementById('razon_rec').value,
-            subtotal: this.shadowRoot.getElementById('subtotal').value
+    capturarDatos() {
+        return {
+            cuit: this.inputs.cuit.value || '00-00000000-0',
+            cliente: this.inputs.cliente.value || 'Consumidor Final',
+            monto: this.inputs.monto.value || '0'
         };
+    }
 
+    abrirPestañaGrafica() {
+        const datos = this.capturarDatos();
         const nuevaVentana = window.open('', '_blank');
+        
+        // Estructura visual para la nueva pestaña del diseño base de la factura
         nuevaVentana.document.write(`
             <html>
             <head>
-                <title>Factura Original B</title>
+                <title>Factura Electrónica AFIP</title>
                 <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; }
-                    .border-box { border: 2px solid #000; padding: 10px; position: relative; }
-                    .tipo-comprobante { border: 2px solid #000; font-size: 30px; font-weight: bold; width: 50px; text-align: center; margin: 0 auto; background: #fff; }
-                    .header-table { width: 100%; display: flex; justify-content: space-between; margin-bottom: 20px; }
-                    .half { width: 48%; }
-                    .totales { text-align: right; font-size: 18px; font-weight: bold; margin-top: 30px; }
+                    body { font-family: 'Courier New', monospace; padding: 40px; background: #eee; }
+                    .factura-box { max-width: 800px; margin: auto; background: white; padding: 30px; border: 2px solid #000; }
+                    .header-afip { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 20px; }
+                    .tipo-comprobante { border: 1px solid #000; padding: 10px 20px; font-size: 24px; font-weight: bold; }
                 </style>
             </head>
             <body>
-                <div class="border-box">
-                    <div class="tipo-comprobante">B<br><span style="font-size:10px;">COD. 06</span></div>
-                    <div class="header-table">
-                        <div class="half">
-                            <h2>${datos.emisor}</h2>
-                            <p>Condición frente al IVA: Responsable Inscripto</p>
+                <div class="factura-box">
+                    <div class="header-afip">
+                        <div>
+                            <h1>ORIGINAL</h1>
+                            <p><strong>CUIT Emisor:</strong> ${datos.cuit}</p>
                         </div>
-                        <div class="half" style="text-align: right;">
+                        <div class="tipo-comprobante">A</div>
+                        <div>
                             <h2>FACTURA</h2>
-                            <p>Punto de Venta: ${datos.ptovta} Comp. Nro: ${datos.numcomp}</p>
-                            <p>Fecha de Emisión: ${datos.fecha}</p>
                         </div>
                     </div>
-                    <hr>
-                    <div>
-                        <p><strong>CUIT:</strong> ${datos.cuit_rec}</p>
-                        <p><strong>Apellido y Nombre / Razón Social:</strong> ${datos.razon_rec}</p>
+                    <div style="margin: 30px 0;">
+                        <p><strong>Cliente:</strong> ${datos.cliente}</p>
                     </div>
-                    <div class="totales">
-                        <p>Importe Total: $${datos.subtotal}</p>
-                    </div>
+                    <h2 style="text-align: right;">TOTAL: $${datos.monto}</h2>
                 </div>
             </body>
             </html>
         `);
         nuevaVentana.document.close();
     }
+
+    exportarDirectoPDF() {
+        // Ejecuta la función nativa de impresión del navegador
+        // que permite guardar como PDF directamente de manera nativa sin librerías pesadas externas.
+        window.print();
+    }
 }
-customElements.define('factura-form', FacturaForm);
+
+customElements.define('afip-invoice-form', AfipInvoiceForm);
