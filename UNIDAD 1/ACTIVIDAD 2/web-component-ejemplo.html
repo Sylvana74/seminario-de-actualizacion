@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+	<meta charset="utf-8" />
+	<title>Calculadora - Web Component</title>
+	<style>
+		/* Conservamos exactamente el mismo diseño de la Actividad 1 */
+		.calculator-container {
+			background-color: #f5f5f5;
+			padding: 20px;
+			border-radius: 8px;
+			display: inline-block;
+			box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+		}
+
+		table {
+			border-collapse: separate;
+			border-spacing: 10px;
+		}
+
+		#display {
+			width: 100%;
+			box-sizing: border-box;
+			height: 50px;
+			text-align: right;
+			font-size: 28px;
+			padding: 5px 10px;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			color: #333;
+		}
+
+		button {
+			width: 60px;
+			height: 50px;
+			border: none;
+			border-radius: 6px;
+			color: white;
+			font-family: Arial, sans-serif;
+			font-size: 20px;
+			font-weight: bold;
+			cursor: pointer;
+		}
+
+		button:active {
+			transform: translateY(4px);
+			box-shadow: 0px 0px transparent !important;
+		}
+
+		.btn-blue {
+			background-color: #5584e4;
+			box-shadow: 0px 5px #3a5fae;
+		}
+
+		.btn-green {
+			background-color: #7ed34d;
+			box-shadow: 0px 5px #5a9c34;
+		}
+
+		.btn-orange {
+			background-color: #ffaa29;
+			box-shadow: 0px 5px #c5811d;
+		}
+
+		.btnDelete {
+			color: white;
+			font-family: Arial, sans-serif;
+			font-weight: bold;
+			font-size: 18px;
+			background-color: #dc422d;
+			box-shadow: 0px 5px #a62d1d;
+			width: 100%;
+			height: 40px; 
+			border-radius: 6px;
+			border: none;
+			cursor: pointer;
+		}
+	</style>
+</head>
+
+<body>
+	</body>
+
+<script type="text/javascript">
+
+class CalculatorComponent extends HTMLElement {
+	constructor() {
+		// 1. Instanciar la clase base siempre en primer lugar
+		super();
+
+		// 2. Crear los contenedores principales del componente
+		this.container = document.createElement('div');
+		this.container.className = 'calculator-container';
+
+		this.table = document.createElement('table');
+
+		// 3. Crear fila de la pantalla (Display)
+		const trDisplay = document.createElement('tr');
+		const tdDisplay = document.createElement('td');
+		tdDisplay.colSpan = 4;
+
+		this.display = document.createElement('input');
+		this.display.id = 'display';
+		this.display.type = 'text';
+		this.display.value = '';
+		this.display.disabled = true;
+
+		tdDisplay.appendChild(this.display);
+		trDisplay.appendChild(tdDisplay);
+		this.table.appendChild(trDisplay);
+
+		// Lista para almacenar las referencias de todos los botones para los eventos
+		this.buttonsList = [];
+
+		// Matriz de configuración para armar el teclado ordenadamente sin usar innerHTML
+		const keyboardLayout = [
+			[ {t:'7', c:'btn-blue'}, {t:'8', c:'btn-blue'}, {t:'9', c:'btn-blue'}, {t:'+', c:'btn-green'} ],
+			[ {t:'4', c:'btn-blue'}, {t:'5', c:'btn-blue'}, {t:'6', c:'btn-blue'}, {t:'-', c:'btn-green'} ],
+			[ {t:'3', c:'btn-blue'}, {t:'2', c:'btn-blue'}, {t:'1', c:'btn-blue'}, {t:'*', c:'btn-green'} ],
+			[ {t:'0', c:'btn-blue'}, {t:'.', c:'btn-blue'}, {t:'=', c:'btn-orange'}, {t:'/', c:'btn-green'} ]
+		];
+
+		// 4. Construcción dinámica del teclado numérico y de operaciones
+		keyboardLayout.forEach(rowData => {
+			const tr = document.createElement('tr');
+			rowData.forEach(btnData => {
+				const td = document.createElement('td');
+				const btn = document.createElement('button');
+				btn.innerText = btnData.t;
+				btn.className = btnData.c;
+				
+				td.appendChild(btn);
+				tr.appendChild(td);
+
+				// Guardamos la referencia del botón para asignarle el evento más adelante
+				this.buttonsList.push(btn);
+			});
+			this.table.appendChild(tr);
+		});
+
+		// 5. Crear la fila del botón "Borrar"
+		const trDelete = document.createElement('tr');
+		const tdDelete = document.createElement('td');
+		tdDelete.colSpan = 4;
+
+		this.btnDelete = document.createElement('button');
+		this.btnDelete.innerText = 'Borrar';
+		this.btnDelete.className = 'btnDelete';
+
+		tdDelete.appendChild(this.btnDelete);
+		trDelete.appendChild(tdDelete);
+		this.table.appendChild(trDelete);
+
+		// 6. Ensamblar el contenedor e incorporarlo al componente
+		this.container.appendChild(this.table);
+		this.appendChild(this.container);
+
+		// Binds para asegurar que el contexto 'this' apunte a la clase del componente
+		this.onGeneralButtonClick = this.onGeneralButtonClick.bind(this);
+		this.onDeleteButtonClick = this.onDeleteButtonClick.bind(this);
+	}
+
+	// Métodos de control de eventos
+	onGeneralButtonClick(event) {
+		const value = event.target.innerText;
+
+		if (value === '=') {
+			try {
+				this.display.value = eval(this.display.value);
+			} catch (e) {
+				this.display.value = 'Error';
+			}
+		} else {
+			this.display.value += value;
+		}
+	}
+
+	onDeleteButtonClick() {
+		this.display.value = '';
+	}
+
+	// Ciclo de vida: Vinculación de eventos al agregarse al DOM
+	connectedCallback() {
+		console.log('Calculadora Web Component agregada al DOM');
+
+		// Asignar eventos a todos los botones del teclado numérico y operaciones
+		this.buttonsList.forEach(btn => {
+			btn.onclick = this.onGeneralButtonClick;
+		});
+
+		// Asignar evento al botón de borrado
+		this.btnDelete.onclick = this.onDeleteButtonClick;
+	}
+
+	// Ciclo de vida: Limpieza de eventos al removerse del DOM
+	disconnectedCallback() {
+		console.log('Calculadora Web Component removida del DOM');
+
+		this.buttonsList.forEach(btn => {
+			btn.onclick = null;
+		});
+		this.btnDelete.onclick = null;
+	}
+}
+
+// Registrar el nuevo elemento personalizado de forma global
+customElements.define('x-calculator', CalculatorComponent);
+
+// Función principal de inicialización de la página
+function main() {
+	let myCustomCalculator = new CalculatorComponent();
+	document.body.appendChild(myCustomCalculator);
+}
+
+window.onload = main;
+
+</script>
+
+</html>

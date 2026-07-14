@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ejercicio 10 - Drag and Drop CSV</title>
+</head>
+<body style="margin: 0; padding: 0;">
+    <script>
+        class LectorCsvClima extends HTMLElement {
+            constructor() {
+                super();
+                
+                this.dropZone = document.createElement('div');
+                this.dropZone.style.position = "fixed";
+                this.dropZone.style.top = "0";
+                this.dropZone.style.left = "0";
+                this.dropZone.style.width = "100vw";
+                this.dropZone.style.height = "100vh";
+                this.dropZone.style.backgroundColor = "#e0f7fa";
+                this.dropZone.style.border = "5px dashed #0097a7";
+                this.dropZone.style.boxSizing = "border-box";
+                this.dropZone.style.display = "flex";
+                this.dropZone.style.flexDirection = "column";
+                this.dropZone.style.alignItems = "center";
+                this.dropZone.style.justifyContent = "center";
+                this.dropZone.style.fontFamily = "Arial";
+
+                this.mensaje = document.createElement('h1');
+                this.mensaje.textContent = "Arrastre el archivo CSV aquí";
+                this.dropZone.appendChild(this.mensaje);
+
+                this.salidaTabla = document.createElement('div');
+                this.salidaTabla.style.backgroundColor = "white";
+                this.salidaTabla.style.padding = "20px";
+                this.salidaTabla.style.maxWidth = "90%";
+                this.salidaTabla.style.overflowX = "auto";
+                this.dropZone.appendChild(this.salidaTabla);
+
+                this.appendChild(this.dropZone);
+            }
+
+            prevenir(event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            resaltarFondo(event) {
+                this.prevenir(event);
+                this.dropZone.style.backgroundColor = "#b2ebf2";
+            }
+
+            restaurarFondo(event) {
+                this.prevenir(event);
+                this.dropZone.style.backgroundColor = "#e0f7fa";
+            }
+
+            soltarArchivo(event) {
+                this.prevenir(event);
+                this.restaurarFondo(event);
+
+                let archivos = event.dataTransfer.files;
+                if (archivos.length > 0) {
+                    let archivo = archivos[0];
+                    if (archivo.type === "text/csv" || archivo.name.indexOf(".csv") !== -1) {
+                        let lector = new FileReader();
+                        // Pasamos el evento limpio sin arrow functions usando bind
+                        lector.onload = this.procesarCSV.bind(this);
+                        lector.readAsText(archivo);
+                    } else {
+                        alert("Por favor, soltá solamente un archivo CSV.");
+                    }
+                }
+            }
+
+            procesarCSV(event) {
+                let textoCrudo = event.target.result;
+                let lineas = textoCrudo.split("\n");
+                
+                this.mensaje.textContent = "Datos Recuperados del CSV:";
+                this.salidaTabla.innerHTML = ""; 
+
+                let table = document.createElement('table');
+                table.style.borderCollapse = "collapse";
+                table.style.width = "100%";
+                table.style.textAlign = "center";
+                table.style.fontSize = "12px";
+
+                for (let i = 0; i < lineas.length; i++) {
+                    let linea = lineas[i].trim();
+                    if (linea !== "") {
+                        let tr = document.createElement('tr');
+                        // Limpiamos las comillas dobles
+                        let celdas = linea.replace(/"/g, "").split(","); 
+                        
+                        for (let j = 0; j < celdas.length; j++) {
+                            let celdaTag = (i === 0) ? 'th' : 'td';
+                            let celda = document.createElement(celdaTag);
+                            celda.style.border = "1px solid #ccc";
+                            celda.style.padding = "5px";
+                            if (i === 0) celda.style.backgroundColor = "#f1f1f1";
+                            
+                            celda.textContent = celdas[j];
+                            tr.appendChild(celda);
+                        }
+                        table.appendChild(tr);
+                    }
+                }
+                this.salidaTabla.appendChild(table);
+            }
+
+            connectedCallback() {
+                this.dropZone.ondragenter = this.prevenir.bind(this);
+                this.dropZone.ondragover = this.resaltarFondo.bind(this);
+                this.dropZone.ondragleave = this.restaurarFondo.bind(this);
+                this.dropZone.ondrop = this.soltarArchivo.bind(this);
+            }
+
+            disconnectedCallback() {
+                this.dropZone.ondragenter = null;
+                this.dropZone.ondragover = null;
+                this.dropZone.ondragleave = null;
+                this.dropZone.ondrop = null;
+            }
+        }
+
+        customElements.define('lector-csv-clima', LectorCsvClima);
+        document.body.appendChild(new LectorCsvClima());
+    </script>
+</body>
+</html>

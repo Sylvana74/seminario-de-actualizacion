@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ejercicio 8 - Clima MDP y Exportación</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <script>
+        class WeatherDataMdp extends HTMLElement {
+            constructor() {
+                super();
+                this.enFahrenheit = false;
+
+                // Datos de la tabla
+                this.datosClima = [
+                    { nombre: "Temp. máx. abs.", tipo: "temp", valores: [42.4, 38.1, 36.3, 32.5, 27.4, 22.2, 27.7, 24.7, 28.8, 34.4, 35.7, 39.4, 39.4] },
+                    { nombre: "Temp. máx. media", tipo: "temp", valores: [26.3, 25.8, 23.7, 20.5, 16.8, 13.8, 13.1, 14.4, 16.0, 18.5, 21.7, 24.4, 19.6] },
+                    { nombre: "Temp. media", tipo: "temp", valores: [20.3, 19.9, 18.0, 14.6, 11.3, 8.5, 8.1, 8.9, 10.5, 13.1, 15.9, 18.5, 14.0] },
+                    { nombre: "Temp. mín. media", tipo: "temp", valores: [14.3, 14.1, 12.5, 9.1, 6.4, 4.1, 3.8, 4.0, 5.3, 7.6, 10.1, 12.7, 8.7] },
+                    { nombre: "Temp. mín. abs.", tipo: "temp", valores: [4.7, 1.2, 1.9, -1.0, -3.0, -5.5, -9.3, -8.4, -5.5, -3.0, -2.0, -0.2, -9.3] },
+                    { nombre: "Precipitación total (mm)", tipo: "precip", valores: [100.1, 72.8, 107.0, 73.3, 73.5, 54.9, 58.9, 64.0, 56.4, 83.4, 75.3, 104.0, 923.6] },
+                    { nombre: "Días de precipitaciones", tipo: "dias", valores: [9, 8, 9, 9, 9, 9, 9, 8, 7, 10, 10, 10, 107] },
+                    { nombre: "Horas de sol", tipo: "sol", valores: [288.3, 234.5, 232.5, 195.0, 167.4, 120.0, 127.1, 164.3, 174.0, 210.8, 222.0, 269.7, 2405.6] },
+                    { nombre: "Humedad relativa (%)", tipo: "humedad", valores: [76, 77, 79, 81, 83, 84, 81, 81, 80, 80, 77, 76, 80] }
+                ];
+                this.meses = ["Mes", "Ene.", "Feb.", "Mar.", "Abr.", "May.", "Jun.", "Jul.", "Ago.", "Sep.", "Oct.", "Nov.", "Dic.", "Anual"];
+
+                // 1. CONSTRUCCIÓN DE LA INTERFAZ
+                this.container = document.createElement('div');
+                this.container.style.fontFamily = "Arial, sans-serif";
+                this.container.style.margin = "20px auto";
+                this.container.style.maxWidth = "1000px";
+
+                this.styleElement = document.createElement('style');
+                this.styleElement.textContent = `
+                    .tabla-clima { border-collapse: collapse; width: 100%; text-align: center; font-size: 13px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+                    .tabla-clima th, .tabla-clima td { border: 1px solid #a0a0a0; padding: 8px 4px; }
+                    .tabla-clima th { background-color: #f2f2f2; font-weight: bold; }
+                    .fila-titulo { text-align: center; font-weight: bold; color: #0047b3; background-color: #e6f0ff; width: 140px; }
+                    .botonera { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+                    .btn { padding: 10px 15px; font-weight: bold; color: white; border: none; border-radius: 4px; cursor: pointer; }
+                    .btn-toggle { background-color: #007bff; }
+                    .btn-export { background-color: #28a745; }
+                `;
+                this.appendChild(this.styleElement);
+
+                // Botonera de acciones
+                this.btnCaja = document.createElement('div');
+                this.btnCaja.className = 'botonera';
+
+                this.btnToggle = document.createElement('button');
+                this.btnToggle.className = 'btn btn-toggle';
+                this.btnToggle.textContent = 'Alternar a ºF';
+
+                this.btnImprimir = document.createElement('button');
+                this.btnImprimir.className = 'btn btn-export';
+                this.btnImprimir.textContent = '🖨️ Imprimir';
+
+                this.btnPng = document.createElement('button');
+                this.btnPng.className = 'btn btn-export';
+                this.btnPng.textContent = '🖼️ PNG';
+
+                this.btnCsv = document.createElement('button');
+                this.btnCsv.className = 'btn btn-export';
+                this.btnCsv.textContent = '📄 CSV';
+
+                this.btnExcel = document.createElement('button');
+                this.btnExcel.className = 'btn btn-export';
+                this.btnExcel.textContent = '📊 Excel';
+
+                this.btnPdf = document.createElement('button');
+                this.btnPdf.className = 'btn btn-export';
+                this.btnPdf.textContent = '📕 PDF';
+
+                this.btnCaja.appendChild(this.btnToggle);
+                this.btnCaja.appendChild(this.btnImprimir);
+                this.btnCaja.appendChild(this.btnPng);
+                this.btnCaja.appendChild(this.btnCsv);
+                this.btnCaja.appendChild(this.btnExcel);
+                this.btnCaja.appendChild(this.btnPdf);
+                this.container.appendChild(this.btnCaja);
+
+                // Armado de la Tabla
+                this.tabla = document.createElement('table');
+                this.tabla.className = 'tabla-clima';
+
+                this.thead = document.createElement('thead');
+                let trHead = document.createElement('tr');
+                for (let i = 0; i < this.meses.length; i++) {
+                    let th = document.createElement('th');
+                    th.textContent = this.meses[i];
+                    trHead.appendChild(th);
+                }
+                this.thead.appendChild(trHead);
+                this.tabla.appendChild(this.thead);
+
+                this.tbody = document.createElement('tbody');
+                this.tabla.appendChild(this.tbody);
+                this.container.appendChild(this.tabla);
+
+                this.appendChild(this.container);
+                this.renderTabla();
+            }
+
+            // Lógica de colores y conversión
+            convertirTemperatura(celsius) { return (celsius * 9/5) + 32; }
+
+            obtenerColorCelda(valorCelsius, tipo) {
+                if (tipo === "temp") {
+                    if (valorCelsius >= 40) return { bg: '#b30000', text: 'white' };
+                    if (valorCelsius >= 35) return { bg: '#cc0000', text: 'white' };
+                    if (valorCelsius >= 30) return { bg: '#ff3333', text: 'black' };
+                    if (valorCelsius >= 25) return { bg: '#ff6600', text: 'black' };
+                    if (valorCelsius >= 20) return { bg: '#ff9933', text: 'black' };
+                    if (valorCelsius >= 15) return { bg: '#ffcc66', text: 'black' };
+                    if (valorCelsius >= 10) return { bg: '#ffff99', text: 'black' };
+                    if (valorCelsius >= 5)  return { bg: '#ffffcc', text: 'black' };
+                    if (valorCelsius >= 0)  return { bg: '#e6ffff', text: 'black' };
+                    if (valorCelsius >= -5) return { bg: '#ccffff', text: 'black' };
+                    return { bg: '#99ccff', text: 'black' };
+                }
+                if (tipo === "precip") {
+                    if (valorCelsius >= 150) return { bg: '#6666ff', text: 'white' };
+                    if (valorCelsius >= 100) return { bg: '#4d4dff', text: 'white' };
+                    if (valorCelsius >= 70)  return { bg: '#8080ff', text: 'black' };
+                    if (valorCelsius >= 50)  return { bg: '#b3b3ff', text: 'black' };
+                    return { bg: '#e6e6ff', text: 'black' };
+                }
+                if (tipo === "dias") {
+                    if (valorCelsius >= 100) return { bg: '#80b3ff', text: 'black' };
+                    if (valorCelsius >= 10) return { bg: '#4d94ff', text: 'black' };
+                    return { bg: '#99c2ff', text: 'black' };
+                }
+                if (tipo === "sol") {
+                    if (valorCelsius >= 250) return { bg: '#ffeb3b', text: 'black' };
+                    if (valorCelsius >= 200) return { bg: '#fff176', text: 'black' };
+                    if (valorCelsius >= 150) return { bg: '#fff59d', text: 'black' };
+                    return { bg: '#fff9c4', text: 'black' };
+                }
+                if (tipo === "humedad") return { bg: '#0000cc', text: 'white' };
+                return { bg: 'white', text: 'black' };
+            }
+
+            renderTabla() {
+                this.tbody.innerHTML = '';
+                let sufijoTemp = this.enFahrenheit ? '(ºF)' : '(ºC)';
+
+                for (let i = 0; i < this.datosClima.length; i++) {
+                    let filaData = this.datosClima[i];
+                    let tr = document.createElement('tr');
+
+                    let tdNombre = document.createElement('td');
+                    tdNombre.className = 'fila-titulo';
+                    tdNombre.innerHTML = filaData.nombre + (filaData.tipo === "temp" ? '<br>' + sufijoTemp : '');
+                    tr.appendChild(tdNombre);
+
+                    for (let j = 0; j < filaData.valores.length; j++) {
+                        let td = document.createElement('td');
+                        let valor = filaData.valores[j];
+                        
+                        let estilo = this.obtenerColorCelda(valor, filaData.tipo);
+                        td.style.backgroundColor = estilo.bg;
+                        td.style.color = estilo.text;
+
+                        if (filaData.tipo === "temp") {
+                            td.textContent = this.enFahrenheit ? this.convertirTemperatura(valor).toFixed(1) : valor.toFixed(1);
+                        } else {
+                            td.textContent = valor;
+                        }
+                        tr.appendChild(td);
+                    }
+                    this.tbody.appendChild(tr);
+                }
+            }
+
+            // ACCIONES
+            onBtnToggleClick() {
+                this.enFahrenheit = !this.enFahrenheit;
+                this.btnToggle.textContent = this.enFahrenheit ? 'Volver a ºC' : 'Alternar a ºF';
+                this.renderTabla();
+            }
+
+            imprimir() { window.print(); }
+
+            exportarCSV() {
+                let csv = "";
+                for (let i = 0; i < this.tabla.rows.length; i++) {
+                    let cols = this.tabla.rows[i].querySelectorAll("th, td");
+                    let filaCsv = [];
+                    for (let j = 0; j < cols.length; j++) {
+                        // Limpiamos los saltos de línea del <br>
+                        filaCsv.push('"' + cols[j].innerText.replace(/\n/g, " ") + '"');
+                    }
+                    csv += filaCsv.join(",") + "\n";
+                }
+                let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                let enlace = document.createElement("a");
+                enlace.href = URL.createObjectURL(blob);
+                enlace.download = "clima_mdp.csv";
+                enlace.click();
+            }
+
+            exportarExcel() {
+                let libro = XLSX.utils.table_to_book(this.tabla, {sheet: "Clima"});
+                XLSX.writeFile(libro, "clima_mdp.xlsx");
+            }
+
+            // Usamos funciones tradicionales en los callbacks (nada de flechas)
+            exportarPNG() {
+                this.btnCaja.style.display = 'none'; // Ocultamos botones para la foto
+                html2canvas(this.container).then(function(canvas) {
+                    let enlace = document.createElement('a');
+                    enlace.download = 'clima_mdp.png';
+                    enlace.href = canvas.toDataURL("image/png");
+                    enlace.click();
+                    this.btnCaja.style.display = 'flex'; // Los volvemos a mostrar
+                }.bind(this));
+            }
+
+            exportarPDF() {
+                this.btnCaja.style.display = 'none';
+                html2pdf().from(this.container).save('clima_mdp.pdf').then(function() {
+                    this.btnCaja.style.display = 'flex';
+                }.bind(this));
+            }
+
+            // CICLO DE VIDA (100% LIMPIO)
+            connectedCallback() {
+                this.btnToggle.onclick = this.onBtnToggleClick.bind(this);
+                this.btnImprimir.onclick = this.imprimir.bind(this);
+                this.btnPng.onclick = this.exportarPNG.bind(this);
+                this.btnCsv.onclick = this.exportarCSV.bind(this);
+                this.btnExcel.onclick = this.exportarExcel.bind(this);
+                this.btnPdf.onclick = this.exportarPDF.bind(this);
+            }
+
+            disconnectedCallback() {
+                this.btnToggle.onclick = null;
+                this.btnImprimir.onclick = null;
+                this.btnPng.onclick = null;
+                this.btnCsv.onclick = null;
+                this.btnExcel.onclick = null;
+                this.btnPdf.onclick = null;
+            }
+        }
+
+        customElements.define('weather-data-mdp', WeatherDataMdp);
+        document.body.appendChild(new WeatherDataMdp());
+    </script>
+</body>
+</html>

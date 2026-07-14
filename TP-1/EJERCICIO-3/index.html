@@ -2,14 +2,165 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ejercicio 3 - Ecualizador</title>
+    <title>Ecualizador Gráfico</title>
 </head>
 <body>
-
-    <graphic-equalizer></graphic-equalizer>
-
-    <script src="GraphicEq.js"></script>
-
 </body>
+
+<script>
+    class GraphicEqualizer extends HTMLElement {
+        constructor() {
+            super();
+            
+            // Estado inicial de las frecuencias EXACTAS de la imagen
+            this._data = {
+                '32Hz': 0,
+                '64Hz': 0,
+                '130Hz': 0,
+                '260Hz': 0,
+                '500Hz': 0,
+                '1k': 0,
+                '2k': 0,
+                '4k': 0,
+                '8.3k': 0,
+                '16.5k': 0
+            };
+            this.sliders = {};
+
+            // 1. CONSTRUCCIÓN DE LA INTERFAZ
+            this.container = document.createElement('div');
+            this.container.className = 'eq-container';
+
+            this.styleElement = document.createElement('style');
+            this.styleElement.textContent = `
+                .eq-container {
+                    display: flex;
+                    gap: 15px;
+                    padding: 25px;
+                    background: #d4d0c8; /* Color gris clásico de la imagen */
+                    color: #000000;
+                    border: 2px solid #ffffff;
+                    border-right-color: #808080;
+                    border-bottom-color: #808080;
+                    font-family: 'MS Sans Serif', Arial, sans-serif;
+                    width: fit-content;
+                }
+                .control-band {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    width: 45px;
+                    border: 1px solid #808080;
+                    border-right-color: #ffffff;
+                    border-bottom-color: #ffffff;
+                    padding: 10px 5px;
+                }
+                .band-label {
+                    font-size: 12px;
+                    margin-bottom: 10px;
+                }
+                .control-band input[type=range] {
+                    writing-mode: vertical-lr;
+                    direction: rtl;
+                    height: 150px;
+                    margin: 10px 0;
+                    cursor: pointer;
+                }
+                .value-tag {
+                    font-size: 11px;
+                    margin-top: 10px;
+                }
+            `;
+            this.appendChild(this.styleElement);
+
+            // Bucle clásico para construir cada banda
+            for (let key in this._data) {
+                let band = document.createElement('div');
+                band.className = 'control-band';
+
+                let label = document.createElement('span');
+                label.className = 'band-label';
+                label.textContent = key;
+
+                let slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = '-12';
+                slider.max = '12';
+                slider.value = this._data[key];
+                
+                slider.dataset.key = key; 
+                this.sliders[key] = slider;
+
+                let display = document.createElement('span');
+                display.className = 'value-tag';
+                // Para que de entrada diga "+0dB" en lugar de solo "0dB"
+                let prefix = this._data[key] >= 0 ? '+' : '';
+                display.textContent = prefix + slider.value + 'dB';
+                this.sliders[key + 'Display'] = display;
+
+                band.appendChild(label);
+                band.appendChild(slider);
+                band.appendChild(display);
+                this.container.appendChild(band);
+            }
+
+            this.appendChild(this.container);
+        }
+
+        // 2. MANEJADOR DE EVENTOS SEPARADO
+        onSliderInput(event) {
+            let slider = event.target;
+            let key = slider.dataset.key; 
+            let val = parseInt(slider.value);
+            
+            this._data[key] = val;
+            let prefix = val >= 0 ? '+' : '';
+            this.sliders[key + 'Display'].textContent = prefix + val + 'dB';
+        }
+
+        // 3. CICLO DE VIDA: SOLO CONECTAR
+        connectedCallback() {
+            for (let key in this._data) {
+                this.sliders[key].oninput = this.onSliderInput.bind(this);
+            }
+        }
+
+        // 4. CICLO DE VIDA: SOLO DESCONECTAR
+        disconnectedCallback() {
+            for (let key in this._data) {
+                this.sliders[key].oninput = null;
+            }
+        }
+
+        // 5. MÉTODOS DE ACTUALIZACIÓN Y DATOS
+        updateUI() {
+            for (let key in this._data) {
+                if (this.sliders[key]) {
+                    this.sliders[key].value = this._data[key];
+                    let val = this._data[key];
+                    let prefix = val >= 0 ? '+' : '';
+                    this.sliders[key + 'Display'].textContent = prefix + val + 'dB';
+                }
+            }
+        }
+
+        getData() {
+            return { ...this._data };
+        }
+
+        setData(newData) {
+            this._data = { ...this._data, ...newData };
+            this.updateUI();
+        }
+    }
+
+    customElements.define('graphic-equalizer', GraphicEqualizer);
+
+    function main() {
+        const eq = new GraphicEqualizer();
+        document.body.appendChild(eq);
+    }
+
+    window.onload = main;
+</script>
 </html>

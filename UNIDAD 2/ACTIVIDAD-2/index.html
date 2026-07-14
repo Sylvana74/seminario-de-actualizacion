@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>W3Admin MVC View</title>
+    
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
+    </style>
+</head>
+
+<body class="w3-light-grey">
+
+    <script>
+        // ==========================================
+        // 1. FUNCIONES AUXILIARES DE CONSTRUCCIÓN DOM
+        // ==========================================
+
+        function createButtonMenu(iconClass, text, href) {
+            let a = document.createElement('a');
+            let icon = document.createElement('i');
+            let textNode = document.createTextNode(' ' + text);
+
+            a.classList.add("w3-bar-item", "w3-button", "w3-padding-large", "w3-hover-text-primary");
+            a.href = href || '#';
+            
+            icon.classList.add('fa', 'fa-fw');
+            if (iconClass) icon.classList.add(iconClass);
+
+            a.appendChild(icon);
+            a.appendChild(textNode);
+            return a;
+        }
+
+        function createNavbar() {
+            let topContainer = document.createElement('div');
+            let flexBar = document.createElement('div');
+            
+            let logoContainer = document.createElement('div');
+            let logoH5 = document.createElement('h5');
+            let logoLink = document.createElement('a');
+            let logoImg = document.createElement('img');
+            let logoText = document.createTextNode('  W3Admin ');
+            
+            let sidebarLabel = document.createElement('label'); // Este es el botón hamburguesa
+            let sidebarIcon = document.createElement('i');
+            
+            let searchContainer = document.createElement('div'); 
+            let searchFocusDiv = document.createElement('div');
+            
+            let rightButtonsContainer = document.createElement('div');
+            let btnEnvelope = document.createElement('button');
+            let iconEnvelope = document.createElement('i');
+            let btnBell = document.createElement('button');
+            let iconBell = document.createElement('i');
+            
+            let userContainer = document.createElement('div');
+            let userBtn = document.createElement('div');
+            let userCircle = document.createElement('div');
+            let userIcon = document.createElement('i');
+
+            topContainer.classList.add('w3-top', 'w3-card');
+            topContainer.style.height = '54px';
+            flexBar.classList.add('w3-flex-bar', 'w3-theme', 'w3-left-align');
+            
+            logoContainer.classList.add('admin-logo', 'w3-bar-item', 'w3-hide-medium', 'w3-hide-small');
+            logoH5.style.lineHeight = '1';
+            logoH5.style.setProperty('margin', '0', 'important');
+            logoH5.style.fontWeight = '300';
+            logoLink.href = './index.html';
+            logoLink.classList.add('w3-button', 'w3-bold');
+            logoImg.src = 'https://www.w3schools.com/images/w3schools_green.jpg'; 
+            logoImg.alt = 'w3mix';
+            logoImg.classList.add('w3-image', 'w3-circle');
+            logoImg.width = 26;
+
+            sidebarLabel.htmlFor = 'sidebar-control';
+            sidebarLabel.classList.add('w3-button', 'w3-large', 'w3-opacity-min');
+            sidebarLabel.style.cursor = 'pointer';
+            sidebarIcon.classList.add('fa', 'fa-bars');
+            
+            searchContainer.style.width = '40%';
+            searchFocusDiv.classList.add('w3-display-right', 'w3-padding-small', 'w3-margin-right');
+            
+            rightButtonsContainer.classList.add('w3-right');
+            btnEnvelope.type = 'button';
+            btnEnvelope.classList.add('w3-button', 'w3-large', 'w3-opacity-min');
+            iconEnvelope.classList.add('fa', 'fa-envelope-open');
+            btnBell.type = 'button';
+            btnBell.classList.add('w3-button', 'w3-large', 'w3-opacity-min');
+            iconBell.classList.add('fa', 'fa-bell');
+            
+            userContainer.classList.add('text-right');
+            userBtn.classList.add('w3-button');
+            userCircle.classList.add('w3-circle', 'w3-center', 'w3-text-white', 'w3-black');
+            userCircle.style.width = '38px';
+            userCircle.style.height = '38px';
+            userIcon.classList.add('fa', 'fa-fw', 'fa-user');
+            userIcon.style.marginTop = '11px';
+
+            logoLink.appendChild(logoImg);
+            logoLink.appendChild(logoText);
+            logoH5.appendChild(logoLink);
+            logoContainer.appendChild(logoH5);
+            
+            sidebarLabel.appendChild(sidebarIcon);
+            searchContainer.appendChild(searchFocusDiv);
+            
+            btnEnvelope.appendChild(iconEnvelope);
+            btnBell.appendChild(iconBell);
+            rightButtonsContainer.appendChild(btnEnvelope);
+            rightButtonsContainer.appendChild(btnBell);
+            
+            userCircle.appendChild(userIcon);
+            userBtn.appendChild(userCircle);
+            userContainer.appendChild(userBtn);
+            
+            flexBar.appendChild(logoContainer);
+            flexBar.appendChild(sidebarLabel);
+            flexBar.appendChild(searchContainer);
+            flexBar.appendChild(rightButtonsContainer);
+            flexBar.appendChild(userContainer);
+            
+            topContainer.appendChild(flexBar);
+
+            // Exportamos también la referencia al botón hamburguesa (menuBtnRef)
+            return { element: topContainer, searchFocusRef: searchFocusDiv, menuBtnRef: sidebarLabel };
+        }
+
+        function createSidebar() {
+            let sidebar = document.createElement('nav');
+            sidebar.classList.add('w3-sidebar', 'w3-collapse', 'w3-white', 'w3-animate-left');
+            sidebar.style.zIndex = '3';
+            sidebar.style.width = '300px';
+
+            let titleDiv = document.createElement('div');
+            titleDiv.classList.add('w3-container', 'w3-row');
+            
+            // Construcción del título del menú
+            let br = document.createElement('br');
+            let h5 = document.createElement('h5');
+            h5.innerText = 'Menú';
+            titleDiv.appendChild(br);
+            titleDiv.appendChild(h5);
+            
+            sidebar.appendChild(titleDiv);
+            sidebar.appendChild(document.createElement('hr'));
+
+            sidebar.appendChild(createButtonMenu('fa-edit', 'Forms', 'forms.html'));
+            sidebar.appendChild(createButtonMenu('fa-table', 'Tables', 'tables.html'));
+            sidebar.appendChild(createButtonMenu('fa-user', 'Profile', 'profile.html'));
+
+            return sidebar;
+        }
+
+        // Crea el fondo oscuro cuando el menú se abre en celulares
+        function createOverlay() {
+            let overlay = document.createElement('div');
+            overlay.classList.add('w3-overlay', 'w3-hide-large', 'w3-animate-opacity');
+            overlay.style.cursor = 'pointer';
+            overlay.title = 'Cerrar menú';
+            return overlay;
+        }
+
+        function createContentBody() {
+            let contentDiv = document.createElement('div');
+            contentDiv.classList.add('w3-main');
+            contentDiv.style.marginLeft = '300px';
+            contentDiv.style.marginTop = '54px';
+            //Le damos una altura mínima para que empuje el footer al fondo
+            contentDiv.style.minHeight = 'calc(100vh - 150px)'; 
+            return contentDiv;
+        }
+
+        function createFooter() {
+            let footer = document.createElement('footer');
+            let p = document.createElement('p');
+            p.innerText = 'Panel de Administración MVC';
+            footer.classList.add('w3-container', 'w3-dark-grey', 'w3-padding-32', 'w3-margin-top');
+            footer.appendChild(p);
+            return footer;
+        }
+
+        // ==========================================
+        // 2. CLASE DE LA VISTA (WebComponent)
+        // ==========================================
+
+        class WCApplicationView extends HTMLElement {
+            constructor() {
+                super();
+                
+                // Obtenemos los elementos de la barra superior
+                let navData = createNavbar();
+                this.navbar = navData.element;
+                this.searchFocusDiv = navData.searchFocusRef; 
+                this.menuBtn = navData.menuBtnRef; // Referencia al botón hamburguesa
+                
+                this.sidebar = createSidebar();
+                this.overlay = createOverlay(); // Elemento de fondo oscuro
+                this.content = createContentBody();
+                this.footer = createFooter();
+                
+                // Binds para los eventos
+                this.onSearchContainerClick = this.onSearchContainerClick.bind(this);
+                this.toggleMenu = this.toggleMenu.bind(this);
+                this.closeMenu = this.closeMenu.bind(this);
+            }
+
+            // Lógica migrada del onclick de la barra de búsqueda
+            onSearchContainerClick(event) {
+                let parent = event.currentTarget.parentNode;
+                if (parent && parent.children.length > 1) {
+                    parent.children[1].focus();
+                }
+            }
+
+            // Lógica para abrir/cerrar menú en dispositivos móviles
+            toggleMenu() {
+                if (this.sidebar.style.display === 'block') {
+                    this.sidebar.style.display = 'none';
+                    this.overlay.style.display = 'none';
+                } else {
+                    this.sidebar.style.display = 'block';
+                    this.overlay.style.display = 'block';
+                }
+            }
+
+            // Lógica para cerrar el menú tocando el fondo oscuro
+            closeMenu() {
+                this.sidebar.style.display = 'none';
+                this.overlay.style.display = 'none';
+            }
+
+            connectedCallback() {
+                // Ensamblar en el DOM
+                this.appendChild(this.navbar);
+                this.appendChild(this.sidebar);
+                this.appendChild(this.overlay); // Agregamos el overlay
+                
+                this.content.appendChild(this.footer); 
+                this.appendChild(this.content);
+
+                // Asignar eventos
+                if (this.searchFocusDiv) {
+                    this.searchFocusDiv.addEventListener('click', this.onSearchContainerClick);
+                }
+                if (this.menuBtn) {
+                    this.menuBtn.addEventListener('click', this.toggleMenu);
+                }
+                this.overlay.addEventListener('click', this.closeMenu);
+            }
+
+            disconnectedCallback() {
+                // Limpiar eventos
+                if (this.searchFocusDiv) {
+                    this.searchFocusDiv.removeEventListener('click', this.onSearchContainerClick);
+                }
+                if (this.menuBtn) {
+                    this.menuBtn.removeEventListener('click', this.toggleMenu);
+                }
+                this.overlay.removeEventListener('click', this.closeMenu);
+            }
+        }
+
+        customElements.define('wc-application-view', WCApplicationView);
+
+        // ==========================================
+        // 3. INICIALIZACIÓN
+        // ==========================================
+        window.onload = function() {
+            let myAppView = new WCApplicationView();
+            document.body.appendChild(myAppView);
+        };
+    </script>
+</body>
+</html>

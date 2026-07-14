@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+	<meta charset="utf-8" />
+	<title>Calculadora MVC - Web Component</title>
+	<style>
+		
+		.calculator-container {
+			background-color: #f5f5f5;
+			padding: 20px;
+			border-radius: 8px;
+			display: inline-block;
+			box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+		}
+
+		table {
+			border-collapse: separate;
+			border-spacing: 10px;
+		}
+
+		#display {
+			width: 100%;
+			box-sizing: border-box;
+			height: 50px;
+			text-align: right;
+			font-size: 28px;
+			padding: 5px 10px;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			color: #333;
+			background-color: white;
+		}
+
+		button {
+			width: 60px;
+			height: 50px;
+			border: none;
+			border-radius: 6px;
+			color: white;
+			font-family: Arial, sans-serif;
+			font-size: 20px;
+			font-weight: bold;
+			cursor: pointer;
+		}
+
+		button:active {
+			transform: translateY(4px);
+			box-shadow: 0px 0px transparent !important;
+		}
+
+		.btn-blue { background-color: #5584e4; box-shadow: 0px 5px #3a5fae; }
+		.btn-green { background-color: #7ed34d; box-shadow: 0px 5px #5a9c34; }
+		.btn-orange { background-color: #ffaa29; box-shadow: 0px 5px #c5811d; }
+
+		.btnDelete {
+			color: white;
+			font-family: Arial, sans-serif;
+			font-weight: bold;
+			font-size: 18px;
+			background-color: #dc422d;
+			box-shadow: 0px 5px #a62d1d;
+			width: 100%;
+			height: 40px; 
+			border-radius: 6px;
+			border: none;
+			cursor: pointer;
+		}
+	</style>
+</head>
+
+<body>
+	</body>
+
+<script type="text/javascript">
+
+// ==========================================
+// 1. EL MODELO (Lógica de negocio y datos)
+// ==========================================
+class CalculatorModel {
+	constructor() {
+		this.expression = '';
+	}
+
+	appendValue(value) {
+		this.expression += value;
+	}
+
+	clear() {
+		this.expression = '';
+	}
+
+	calculate() {
+		try {
+			// Si la expresión está vacía, no hacemos nada
+			if (this.expression === '') return; 
+			this.expression = eval(this.expression).toString();
+		} catch (e) {
+			this.expression = 'Error';
+		}
+	}
+
+	getExpression() {
+		return this.expression;
+	}
+}
+
+// ==========================================
+// 2. LA VISTA (Interfaz de usuario y DOM)
+// ==========================================
+class CalculatorView {
+	constructor(rootElement) {
+		this.root = rootElement; // El Web Component en sí mismo
+		this.buttonsList = [];
+		this.buildDOM();
+	}
+
+	// Construye todos los elementos del DOM de la calculadora
+	buildDOM() {
+		this.container = document.createElement('div');
+		this.container.className = 'calculator-container';
+		this.table = document.createElement('table');
+
+		// Fila del Display
+		const trDisplay = document.createElement('tr');
+		const tdDisplay = document.createElement('td');
+		tdDisplay.colSpan = 4;
+
+		this.display = document.createElement('input');
+		this.display.id = 'display';
+		this.display.type = 'text';
+		this.display.value = '';
+		this.display.disabled = true;
+
+		tdDisplay.appendChild(this.display);
+		trDisplay.appendChild(tdDisplay);
+		this.table.appendChild(trDisplay);
+
+		// Teclado
+		const keyboardLayout = [
+			[ {t:'7', c:'btn-blue'}, {t:'8', c:'btn-blue'}, {t:'9', c:'btn-blue'}, {t:'+', c:'btn-green'} ],
+			[ {t:'4', c:'btn-blue'}, {t:'5', c:'btn-blue'}, {t:'6', c:'btn-blue'}, {t:'-', c:'btn-green'} ],
+			[ {t:'3', c:'btn-blue'}, {t:'2', c:'btn-blue'}, {t:'1', c:'btn-blue'}, {t:'*', c:'btn-green'} ],
+			[ {t:'0', c:'btn-blue'}, {t:'.', c:'btn-blue'}, {t:'=', c:'btn-orange'}, {t:'/', c:'btn-green'} ]
+		];
+
+		keyboardLayout.forEach(rowData => {
+			const tr = document.createElement('tr');
+			rowData.forEach(btnData => {
+				const td = document.createElement('td');
+				const btn = document.createElement('button');
+				btn.innerText = btnData.t;
+				btn.className = btnData.c;
+				
+				td.appendChild(btn);
+				tr.appendChild(td);
+				this.buttonsList.push(btn);
+			});
+			this.table.appendChild(tr);
+		});
+
+		// Botón Borrar
+		const trDelete = document.createElement('tr');
+		const tdDelete = document.createElement('td');
+		tdDelete.colSpan = 4;
+
+		this.btnDelete = document.createElement('button');
+		this.btnDelete.innerText = 'Borrar';
+		this.btnDelete.className = 'btnDelete';
+
+		tdDelete.appendChild(this.btnDelete);
+		trDelete.appendChild(tdDelete);
+		this.table.appendChild(trDelete);
+
+		// Ensamblar
+		this.container.appendChild(this.table);
+		this.root.appendChild(this.container);
+	}
+
+	// Método para actualizar la pantalla desde el Controlador
+	updateDisplay(value) {
+		this.display.value = value;
+	}
+
+	// Métodos para vincular eventos a los controladores
+	bindGeneralButtons(handler) {
+		this.generalHandler = (event) => handler(event.target.innerText);
+		this.buttonsList.forEach(btn => {
+			btn.onclick = this.generalHandler;
+		});
+	}
+
+	bindDeleteButton(handler) {
+		this.deleteHandler = handler;
+		this.btnDelete.onclick = this.deleteHandler;
+	}
+
+	// Limpieza de eventos
+	unbindEvents() {
+		this.buttonsList.forEach(btn => {
+			btn.onclick = null;
+		});
+		this.btnDelete.onclick = null;
+	}
+}
+
+// ==========================================
+// 3. EL CONTROLADOR (Web Component)
+// ==========================================
+class CalculatorComponent extends HTMLElement {
+	constructor() {
+		super();
+		// Instanciamos el Modelo y la Vista
+		this.model = new CalculatorModel();
+		this.view = new CalculatorView(this); 
+
+		// Binds de los métodos del controlador
+		this.handleInput = this.handleInput.bind(this);
+		this.handleDelete = this.handleDelete.bind(this);
+	}
+
+	// Lógica de coordinación: La vista avisa que hubo un click
+	handleInput(value) {
+		if (value === '=') {
+			this.model.calculate(); // Pedimos al modelo que calcule
+		} else {
+			this.model.appendValue(value); // Pedimos al modelo que guarde el valor
+		}
+		// Le pasamos el estado actualizado a la vista
+		this.view.updateDisplay(this.model.getExpression());
+	}
+
+	handleDelete() {
+		this.model.clear();
+		this.view.updateDisplay(this.model.getExpression());
+	}
+
+	// Ciclo de vida: Iniciar eventos
+	connectedCallback() {
+		console.log('Controlador MVC conectado al DOM');
+		this.view.bindGeneralButtons(this.handleInput);
+		this.view.bindDeleteButton(this.handleDelete);
+	}
+
+	// Ciclo de vida: Limpiar memoria
+	disconnectedCallback() {
+		console.log('Controlador MVC desconectado');
+		this.view.unbindEvents();
+	}
+}
+
+// Registro del componente
+customElements.define('x-calculator-mvc', CalculatorComponent);
+
+// Función principal
+function main() {
+	let myCalculatorMVC = new CalculatorComponent();
+	document.body.appendChild(myCalculatorMVC);
+}
+
+window.onload = main;
+
+</script>
+
+</html>

@@ -1,4 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ejercicio 2 - Validador de Fecha</title>
+</head>
 <body>
-    <validador-fecha></validador-fecha>
-    <script src="app.js"></script>
 </body>
+
+<script>
+    class ValidadorFecha extends HTMLElement {
+        constructor() {
+            super();
+            
+            // 1. CONSTRUCCIÓN DE LA INTERFAZ (Se elimina buildUI y viene todo acá)
+            this.container = document.createElement('div');
+            this.container.className = 'container';
+
+            this.styleElement = document.createElement('style');
+            this.styleElement.textContent = `
+                .container {
+                    font-family: Arial, sans-serif;
+                    padding: 20px;
+                    background: #f4f4f9;
+                    border-radius: 8px;
+                    max-width: 400px;
+                    margin: 20px auto;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    text-align: center;
+                }
+                h2 { color: #333; }
+                button {
+                    padding: 10px 20px;
+                    background-color: #007bff;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 16px;
+                }
+                button:hover { background-color: #0056b3; }
+            `;
+            this.appendChild(this.styleElement);
+
+            this.titleElement = document.createElement('h2');
+            this.titleElement.textContent = 'Ejercicio 2: Validación de Fecha de Nacimiento';
+            this.container.appendChild(this.titleElement);
+
+            this.descElement = document.createElement('p');
+            this.descElement.textContent = 'Hacé clic abajo para ingresar y validar tu fecha:';
+            this.container.appendChild(this.descElement);
+
+            this.btn = document.createElement('button');
+            this.btn.textContent = 'Validar Fecha';
+            this.container.appendChild(this.btn);
+
+            this.appendChild(this.container);
+        }
+
+        // 2. CICLO DE VIDA: SOLO CONECTAR EVENTOS
+        connectedCallback() {
+            this.btn.onclick = this.ejecutarLogicaValidacion.bind(this);
+        }
+
+        // 3. CICLO DE VIDA: SOLO DESCONECTAR EVENTOS
+        disconnectedCallback() {
+            this.btn.onclick = null;
+        }
+
+        // 4. TU LÓGICA DE BUCLE INTACTA
+        ejecutarLogicaValidacion() {
+            let fechaValida = false;
+            let reintentos = 0;
+
+            while (!fechaValida) {
+                // Si ya hubo errores, sumamos el reintento antes de pedir
+                let mensajePrompt = reintentos === 0 
+                    ? "Por favor, ingresá tu fecha de nacimiento (AAAA-MM-DD o DD/MM/AAAA):"
+                    : "Error número [" + reintentos + "]: El texto suministrado es inválido.\\nPor favor, ingresá una fecha válida:";
+
+                const entrada = prompt(mensajePrompt);
+
+                // Si el usuario cancela el prompt, salimos del bucle
+                if (entrada === null) break;
+
+                // Validación básica de la fecha
+                fechaValida = this.validarFecha(entrada);
+
+                if (!fechaValida) {
+                    reintentos++;
+                } else {
+                    alert("¡Fecha válida ingresada con éxito! Reintentos: " + reintentos);
+                }
+            }
+        }
+
+        // Función auxiliar
+        validarFecha(cadena) {
+            const timestamp = Date.parse(cadena.replace(/\//g, "-"));
+            
+            if (isNaN(timestamp)) {
+                return false;
+            }
+
+            const fecha = new Date(timestamp);
+            return fecha instanceof Date && !isNaN(fecha.getTime());
+        }
+    }
+
+    customElements.define('validador-fecha', ValidadorFecha);
+
+    function main() {
+        const validador = new ValidadorFecha();
+        document.body.appendChild(validador);
+    }
+
+    window.onload = main;
+</script>
+</html>

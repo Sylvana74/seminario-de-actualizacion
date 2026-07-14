@@ -2,94 +2,196 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TP 1 - Ejercicio 4 (Chat WebComponent)</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .control-panel {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-            max-width: 400px;
-            width: 100%;
-        }
-        input[type="text"] {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 8px 15px;
-            background-color: #04AA6D; /* Verde clásico de W3Schools */
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover {
-            background-color: #059669;
-        }
-    </style>
+    <title>Ejercicio 4 - Chat WebComponent</title>
 </head>
 <body>
+    <x-chat></x-chat>
+</body>
 
-    <h2>Interfaz de Chat Encapsulada</h2>
+<script>
+    class ChatComponent extends HTMLElement {
+        constructor() {
+            super();
 
-    <chat-component id="miChat"></chat-component>
+            // 1. CONSTRUCCIÓN DE LA INTERFAZ
+            this.wrapper = document.createElement('div');
+            this.wrapper.style.fontFamily = "Arial, sans-serif";
+            this.wrapper.style.maxWidth = "500px";
+            this.wrapper.style.margin = "20px auto";
 
-    <div class="control-panel">
-        <input type="text" id="inputMensaje" placeholder="Escribí un mensaje de prueba...">
-        <button id="btnEnviar">Enviar</button>
-    </div>
+            // Estilos adaptados exactamente de W3Schools
+            this.styleElement = document.createElement('style');
+            this.styleElement.textContent = `
+                .chat-window { 
+                    border: 1px solid #ccc; 
+                    border-radius: 5px; 
+                    padding: 10px; 
+                    height: 400px; 
+                    overflow-y: auto; 
+                    background-color: #f9f9f9; 
+                }
+                .msg-container { 
+                    border: 2px solid #dedede; 
+                    background-color: #f1f1f1; 
+                    border-radius: 5px; 
+                    padding: 10px; 
+                    margin: 10px 0; 
+                }
+                .msg-container::after { 
+                    content: ""; 
+                    clear: both; 
+                    display: table; 
+                }
+                .darker { 
+                    border-color: #ccc; 
+                    background-color: #ddd; 
+                }
+                .msg-container img { 
+                    float: left; 
+                    max-width: 50px; 
+                    width: 100%; 
+                    margin-right: 20px; 
+                    border-radius: 50%; 
+                }
+                .msg-container img.right { 
+                    float: right; 
+                    margin-left: 20px; 
+                    margin-right: 0; 
+                }
+                .time-right { 
+                    float: right; 
+                    color: #aaa; 
+                    font-size: 12px; 
+                }
+                .time-left { 
+                    float: left; 
+                    color: #999; 
+                    font-size: 12px; 
+                }
+                .msg-text { 
+                    margin: 0; 
+                    padding-top: 5px; 
+                }
+                .controls { 
+                    display: flex; 
+                    margin-top: 10px; 
+                    gap: 5px; 
+                }
+                .controls input { 
+                    flex: 1; 
+                    padding: 10px; 
+                    border: 1px solid #ccc; 
+                    border-radius: 4px; 
+                }
+                .controls button { 
+                    padding: 10px 15px; 
+                    background-color: #4CAF50; 
+                    color: white; 
+                    border: none; 
+                    border-radius: 4px; 
+                    cursor: pointer; 
+                    font-weight: bold;
+                }
+            `;
+            this.appendChild(this.styleElement);
 
-    <script src="ChatComponent.js"></script>
+            // Ventana donde aparecen los mensajes
+            this.chatWindow = document.createElement('div');
+            this.chatWindow.className = 'chat-window';
+            this.wrapper.appendChild(this.chatWindow);
 
-    <script>
-        const chat = document.getElementById('miChat');
-        const input = document.getElementById('inputMensaje');
-        const btn = document.getElementById('btnEnviar');
+            // Controles para escribir y enviar
+            this.controls = document.createElement('div');
+            this.controls.className = 'controls';
 
-        // Simulación de mensajes iniciales usando el método requerido 'insertMessage'
-        // Parámetros: insertMessage(texto, lado ['left'|'right'], hora)
-        setTimeout(() => {
-            chat.insertMessage("¡Hola! ¿Cómo venís con el TP de Seminario?", "left", "11:00");
-        }, 500);
+            this.inputTexto = document.createElement('input');
+            this.inputTexto.type = 'text';
+            this.inputTexto.placeholder = 'Escribe un mensaje aquí...';
 
-        setTimeout(() => {
-            chat.insertMessage("Buenas! Ya estoy terminando de armar los WebComponents.", "right", "11:01");
-        }, 1500);
+            this.btnEnviar = document.createElement('button');
+            this.btnEnviar.textContent = 'Enviar';
 
-        setTimeout(() => {
-            chat.insertMessage("¡Buenísimo! Avisame si te trabás con el ecualizador.", "left", "11:02");
-        }, 2500);
+            this.controls.appendChild(this.inputTexto);
+            this.controls.appendChild(this.btnEnviar);
+            this.wrapper.appendChild(this.controls);
 
+            this.appendChild(this.wrapper);
+            
+            // Inyectamos un mensaje inicial de bienvenida usando nuestro método
+            this.insertarMensaje("¡Hola! ¿En qué te puedo ayudar hoy?", false);
+        }
 
-        // Permitir enviar mensajes nuevos desde el input de la página
-        function enviarMensaje() {
-            const texto = input.value.trim();
-            if (texto !== "") {
-                const ahora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                // Insertamos el mensaje del usuario a la derecha
-                chat.insertMessage(texto, "right", ahora);
-                input.value = "";
+        // 2. EL MÉTODO PRINCIPAL SOLICITADO EN LA CONSIGNA
+        // Construye el HTML de la burbuja y la inserta en el chat
+        insertarMensaje(texto, esMio) {
+            let msgDiv = document.createElement('div');
+            msgDiv.className = 'msg-container';
+            
+            // Si no es mío, le ponemos la clase oscura de W3Schools
+            if (!esMio) {
+                msgDiv.className += ' darker';
+            }
+
+            // Imágenes genéricas de avatar de W3Schools
+            let avatar = document.createElement('img');
+            avatar.src = esMio ? 'https://www.w3schools.com/w3images/avatar2.png' : 'https://www.w3schools.com/w3images/avatar5.png';
+            avatar.alt = 'Avatar';
+            if (esMio) {
+                avatar.className = 'right';
+            }
+
+            let pTexto = document.createElement('p');
+            pTexto.className = 'msg-text';
+            pTexto.textContent = texto;
+
+            // Calculamos la hora actual
+            let spanHora = document.createElement('span');
+            spanHora.className = esMio ? 'time-left' : 'time-right';
+            let ahora = new Date();
+            let minutos = ahora.getMinutes() < 10 ? '0' + ahora.getMinutes() : ahora.getMinutes();
+            spanHora.textContent = ahora.getHours() + ':' + minutos;
+
+            // Armamos la burbuja
+            msgDiv.appendChild(avatar);
+            msgDiv.appendChild(pTexto);
+            msgDiv.appendChild(spanHora);
+
+            // Lo metemos en la ventana
+            this.chatWindow.appendChild(msgDiv);
+            
+            // Hacemos scroll automático hacia abajo
+            this.chatWindow.scrollTop = this.chatWindow.scrollHeight;
+        }
+
+        // 3. LÓGICA DE INTERACCIÓN
+        onEnviarClick() {
+            let texto = this.inputTexto.value;
+            if (texto.trim() !== "") {
+                // Insertamos el mensaje como propio (esMio = true)
+                this.insertarMensaje(texto, true);
+                this.inputTexto.value = "";
+                
+                // Simulamos una respuesta a los 1.5 segundos para probar la función
+                setTimeout(this.simularRespuesta.bind(this), 1500);
             }
         }
 
-        btn.addEventListener('click', enviarMensaje);
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') enviarMensaje();
-        });
-    </script>
-</body>
+        simularRespuesta() {
+            this.insertarMensaje("Recibí tu mensaje: excelente trabajo con los Web Components.", false);
+        }
+
+        // 4. CICLO DE VIDA: CONECTAR
+        connectedCallback() {
+            this.btnEnviar.onclick = this.onEnviarClick.bind(this);
+        }
+
+        // 5. CICLO DE VIDA: DESCONECTAR
+        disconnectedCallback() {
+            this.btnEnviar.onclick = null;
+        }
+    }
+
+    // Registro del componente
+    customElements.define('x-chat', ChatComponent);
+</script>
 </html>

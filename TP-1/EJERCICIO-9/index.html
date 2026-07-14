@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ejercicio 9 - Transcripción</title>
+</head>
+<body>
+    <script>
+        class MicTranscriptor extends HTMLElement {
+            constructor() {
+                super();
+                
+                // Bandera para que el botón funcione como interruptor (evita errores de la API)
+                this.grabando = false;
+
+                // 1. CONSTRUCCIÓN DE LA INTERFAZ
+                this.container = document.createElement('div');
+                this.container.style.fontFamily = "Arial, sans-serif";
+                this.container.style.padding = "20px";
+                this.container.style.maxWidth = "400px";
+                this.container.style.border = "2px solid #ccc";
+                this.container.style.borderRadius = "8px";
+
+                this.btnGrabar = document.createElement('button');
+                this.btnGrabar.textContent = "🎤 Iniciar Dictado";
+                this.btnGrabar.style.padding = "10px";
+                this.btnGrabar.style.cursor = "pointer";
+                this.btnGrabar.style.fontWeight = "bold";
+                
+                this.resultado = document.createElement('p');
+                this.resultado.style.backgroundColor = "#f1f1f1";
+                this.resultado.style.padding = "15px";
+                this.resultado.style.minHeight = "60px";
+                this.resultado.textContent = "Esperando audio...";
+
+                this.container.appendChild(this.btnGrabar);
+                this.container.appendChild(this.resultado);
+                this.appendChild(this.container);
+
+                // 2. CONFIGURACIÓN DEL MOTOR DE VOZ
+                let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (SpeechRecognition) {
+                    this.reconocimiento = new SpeechRecognition();
+                    this.reconocimiento.lang = 'es-AR';
+                    this.reconocimiento.continuous = false;
+                } else {
+                    this.resultado.textContent = "Error: Tu navegador no soporta el reconocimiento de voz nativo.";
+                }
+            }
+
+            // 3. LÓGICA DE GRABACIÓN
+            iniciarGrabacion() {
+                if (this.reconocimiento) {
+                    // Si ya está grabando, lo apagamos
+                    if (this.grabando) {
+                        this.reconocimiento.stop();
+                        return;
+                    }
+
+                    this.grabando = true;
+                    this.btnGrabar.textContent = "🔴 Escuchando... (Click para cortar)";
+                    this.resultado.textContent = "...";
+                    
+                    try {
+                        this.reconocimiento.start();
+                    } catch (error) {
+                        this.reiniciarEstado();
+                    }
+                }
+            }
+
+            procesarResultado(event) {
+                let texto = event.results[0][0].transcript;
+                this.resultado.textContent = texto;
+            }
+
+            manejarError(event) {
+                this.resultado.textContent = "Se detectó un error o no hubo voz: " + event.error;
+            }
+
+            reiniciarEstado() {
+                this.grabando = false;
+                this.btnGrabar.textContent = "🎤 Iniciar Dictado";
+            }
+
+            // 4. CICLO DE VIDA: CONECTAR (Súper limpio, sin arrow functions)
+            connectedCallback() {
+                this.btnGrabar.onclick = this.iniciarGrabacion.bind(this);
+                if (this.reconocimiento) {
+                    this.reconocimiento.onresult = this.procesarResultado.bind(this);
+                    this.reconocimiento.onerror = this.manejarError.bind(this);
+                    this.reconocimiento.onend = this.reiniciarEstado.bind(this); 
+                }
+            }
+
+            // 5. CICLO DE VIDA: DESCONECTAR
+            disconnectedCallback() {
+                this.btnGrabar.onclick = null;
+                if (this.reconocimiento) {
+                    this.reconocimiento.onresult = null;
+                    this.reconocimiento.onerror = null;
+                    this.reconocimiento.onend = null;
+                }
+            }
+        }
+
+        customElements.define('mic-transcriptor', MicTranscriptor);
+        document.body.appendChild(new MicTranscriptor());
+    </script>
+</body>
+</html>

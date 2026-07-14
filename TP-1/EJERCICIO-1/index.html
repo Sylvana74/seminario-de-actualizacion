@@ -1,4 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ejercicio 1 - Saludo</title>
+</head>
 <body>
-    <saludo-formateado></saludo-formateado>
-    <script src="app.js"></script>
 </body>
+
+<script>
+    class SaludoUsuario extends HTMLElement {
+        constructor() {
+            super();
+            
+            // CONSTRUCCIÓN DE LA INTERFAZ
+            this.btn = document.createElement('button');
+            this.btn.textContent = "Ingresar Datos para Saludo";
+            this.btn.style.padding = "10px 20px";
+            this.btn.style.fontSize = "16px";
+            this.btn.style.margin = "20px";
+            this.btn.style.cursor = "pointer";
+
+            this.appendChild(this.btn);
+        }
+
+        // CICLO DE VIDA: CONECTAR
+        connectedCallback() {
+            this.btn.onclick = this.ejecutarSaludo.bind(this);
+        }
+
+        // CICLO DE VIDA: DESCONECTAR
+        disconnectedCallback() {
+            this.btn.onclick = null;
+        }
+
+        // TU LÓGICA INTACTA
+        ejecutarSaludo() {
+            let nombre = prompt("Por favor, ingresá tu nombre:") || "";
+            let apellido = prompt("Por favor, ingresá tu apellido:") || "";
+
+            nombre = nombre.trim();
+            apellido = apellido.trim();
+
+            if (nombre && apellido) {
+                // Formatear Apellido a MAYÚSCULAS
+                const apellidoFormateado = apellido.toUpperCase();
+                
+                // Formatear Nombre a Primera Mayúscula y el resto minúscula
+                const nombreFormateado = nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase();
+                
+                // Mostrar saludo
+                alert('¡Buenos días ' + apellidoFormateado + ', ' + nombreFormateado + '!');
+            } else {
+                alert("Los datos ingresados no son válidos.");
+            }
+        }
+    }
+
+    customElements.define('saludo-usuario', SaludoUsuario);
+
+    function main() {
+        const saludo = new SaludoUsuario();
+        document.body.appendChild(saludo);
+    }
+
+    window.onload = main;
+</script>
+</html>

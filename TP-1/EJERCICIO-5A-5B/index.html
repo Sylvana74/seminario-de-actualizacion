@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Carga de Factura AFIP</title>
+</head>
+<body>
+    
+    <script>
+        class AfipInvoiceForm extends HTMLElement {
+            constructor() {
+                super();
+                this.inputs = {};
+
+                // 1. CONSTRUCCIÓN DEL FORMULARIO
+                this.container = document.createElement('div');
+                this.container.className = 'form-container';
+
+                this.styleElement = document.createElement('style');
+                this.styleElement.textContent = `
+                    .form-container {
+                        font-family: Arial, sans-serif;
+                        max-width: 500px;
+                        margin: 20px auto;
+                        padding: 25px;
+                        background: #ffffff;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    }
+                    .form-group {
+                        display: flex;
+                        flex-direction: column;
+                        margin-bottom: 15px;
+                    }
+                    .form-group label {
+                        font-weight: bold;
+                        margin-bottom: 5px;
+                        color: #000;
+                        font-size: 14px;
+                    }
+                    .form-group input {
+                        padding: 10px;
+                        border: 1px solid #ccc;
+                        border-radius: 4px;
+                        font-size: 14px;
+                    }
+                    .btn-group {
+                        display: flex;
+                        gap: 10px;
+                        margin-top: 20px;
+                    }
+                    .btn {
+                        flex: 1;
+                        padding: 12px;
+                        border: none;
+                        border-radius: 4px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        font-size: 14px;
+                    }
+                    .btn-generate { background-color: #0056b3; color: white; }
+                    .btn-pdf { background-color: #28a745; color: white; }
+                `;
+                this.appendChild(this.styleElement);
+
+                this.titleElement = document.createElement('h2');
+                this.titleElement.textContent = 'Carga de Factura AFIP';
+                this.titleElement.style.marginTop = "0";
+                this.container.appendChild(this.titleElement);
+
+                // Campos del formulario
+                const campos = [
+                    { id: 'cliente', label: 'Razón Social / Apellido y Nombre', type: 'text', placeholder: 'Ej: Instituto Nacional...' },
+                    { id: 'cuit', label: 'CUIT Cliente', type: 'text', placeholder: 'Ej: 30-52276392-2' },
+                    { id: 'domicilio', label: 'Domicilio Cliente', type: 'text', placeholder: 'Ej: Peru 169 - CABA' },
+                    { id: 'producto', label: 'Descripción del Producto/Servicio', type: 'text', placeholder: 'Ej: UGL 6 - CAPITA...' },
+                    { id: 'precio', label: 'Precio Unitario ($)', type: 'number', placeholder: 'Ej: 264002.11' }
+                ];
+
+                for (let i = 0; i < campos.length; i++) {
+                    let campo = campos[i];
+                    
+                    let group = document.createElement('div');
+                    group.className = 'form-group';
+
+                    let label = document.createElement('label');
+                    label.textContent = campo.label;
+
+                    let input = document.createElement('input');
+                    input.type = campo.type;
+                    input.id = campo.id;
+                    input.placeholder = campo.placeholder;
+
+                    group.appendChild(label);
+                    group.appendChild(input);
+                    this.container.appendChild(group);
+
+                    this.inputs[campo.id] = input;
+                }
+
+                // Botones
+                this.btnGroup = document.createElement('div');
+                this.btnGroup.className = 'btn-group';
+
+                this.btnGen = document.createElement('button');
+                this.btnGen.className = 'btn btn-generate';
+                this.btnGen.textContent = 'Generar Factura AFIP';
+
+                this.btnPdf = document.createElement('button');
+                this.btnPdf.className = 'btn btn-pdf';
+                this.btnPdf.textContent = 'Imprimir / PDF';
+
+                this.btnGroup.appendChild(this.btnGen);
+                this.btnGroup.appendChild(this.btnPdf);
+                this.container.appendChild(this.btnGroup);
+
+                this.appendChild(this.container);
+            }
+
+            // 2. CICLO DE VIDA
+            connectedCallback() {
+                this.btnGen.onclick = this.abrirPestañaGrafica.bind(this);
+                this.btnPdf.onclick = this.exportarDirectoPDF.bind(this);
+            }
+
+            disconnectedCallback() {
+                this.btnGen.onclick = null;
+                this.btnPdf.onclick = null;
+            }
+
+            // 3. CAPTURA Y DIBUJO DE LA FACTURA
+            capturarDatos() {
+                // Capturamos los datos, y si está vacío, ponemos los de tu imagen de referencia
+                let precioBase = parseFloat(this.inputs.precio.value || 264002.11);
+                
+                return {
+                    cliente: this.inputs.cliente.value || 'INSTITUTO NACIONAL DE SERVICIOS SOCIALES PARA JUBILADOS Y PE',
+                    cuit: this.inputs.cuit.value || '30522763922',
+                    domicilio: this.inputs.domicilio.value || 'Peru 169 - Capital Federal, Ciudad de Buenos Aires',
+                    producto: this.inputs.producto.value || 'UGL 6 - CAPITA SALUD MENTAL PERIODO 06/16',
+                    precio: precioBase.toFixed(2).replace('.', ',')
+                };
+            }
+
+            abrirPestañaGrafica() {
+                const datos = this.capturarDatos();
+                const nuevaVentana = window.open('', '_blank');
+                
+                // MAQUETACIÓN EXACTA DE AFIP
+                let htmlFactura = `
+                    <!DOCTYPE html>
+                    <html lang="es">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Factura Electrónica AFIP</title>
+                        <style>
+                            @page { size: A4; margin: 0; }
+                            body { font-family: Arial, sans-serif; font-size: 11px; margin: 0; padding: 30px; color: #000; }
+                            .original-title { text-align: center; font-weight: bold; font-size: 18px; margin-bottom: 2px; }
+                            
+                            .invoice-container { border: 2px solid #000; width: 100%; max-width: 800px; margin: 0 auto; box-sizing: border-box; }
+                            
+                            /* HEADER */
+                            .header { display: flex; border-bottom: 2px solid #000; position: relative; min-height: 140px; }
+                            .header-left { width: 50%; padding: 30px 15px 10px 15px; box-sizing: border-box; }
+                            .header-right { width: 50%; border-left: 2px solid #000; padding: 15px 15px 10px 40px; box-sizing: border-box; }
+                            
+                            /* LETRA CENTRAL */
+                            .letra-box { position: absolute; left: 50%; top: -2px; transform: translateX(-50%); width: 60px; background: #fff; text-align: center; border: 2px solid #000; border-top: none; padding-bottom: 5px; }
+                            .letra { font-size: 45px; font-weight: bold; line-height: 1; }
+                            .cod { font-size: 9px; font-weight: bold; }
+
+                            /* INFO SUPERIOR */
+                            .title-factura { font-size: 28px; font-weight: bold; margin: 0 0 10px 0; letter-spacing: 1px; }
+                            .info-text { font-size: 11px; margin: 5px 0; font-weight: bold; }
+                            .info-text span { font-weight: normal; }
+
+                            /* PERIODO FACTURADO */
+                            .periodo-row { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding: 5px 15px; font-weight: bold; }
+                            
+                            /* DATOS CLIENTE */
+                            .cliente-row { display: flex; border-bottom: 2px solid #000; }
+                            .cliente-col { width: 50%; padding: 10px 15px; line-height: 1.6; }
+                            
+                            /* TABLA DE PRODUCTOS */
+                            table { width: 100%; border-collapse: collapse; text-align: right; }
+                            th, td { border: 1px solid #000; padding: 5px; font-size: 10px; }
+                            th { background-color: #e6e6e6; font-weight: bold; text-align: center; }
+                            th:first-child, td:first-child { text-align: left; }
+                            th:nth-child(2), td:nth-child(2) { text-align: left; width: 35%; }
+                            
+                            /* Espacio en blanco de la tabla simulando hoja entera */
+                            .table-body-spacer { height: 350px; }
+                            .table-body-spacer td { border-bottom: none; border-top: none; }
+
+                            /* TOTALES */
+                            .totales-row { border-top: 2px solid #000; display: flex; justify-content: flex-end; padding: 20px 15px; }
+                            .totales-table { width: 300px; border: none; }
+                            .totales-table td { border: none; padding: 4px; font-size: 12px; font-weight: bold; text-align: right; }
+                            
+                            /* FOOTER */
+                            .footer { display: flex; justify-content: space-between; align-items: flex-end; padding: 10px 15px 15px 15px; border-top: 1px solid #ccc; margin-top: 50px;}
+                            .logo-afip { font-family: Impact, sans-serif; font-size: 28px; color: #a0a0a0; font-style: italic; letter-spacing: -1px; margin: 0; line-height: 1;}
+                            .logo-text { font-size: 10px; font-weight: bold; margin-top: 2px; }
+                            .pag-text { font-weight: bold; font-size: 11px; margin-bottom: 15px; }
+                            .cae-box { text-align: right; font-weight: bold; font-size: 11px; line-height: 1.5; }
+                            
+                            /* CODIGO DE BARRAS FALSO */
+                            .barcode { margin-top: 5px; height: 35px; width: 300px; background: repeating-linear-gradient(90deg, #000, #000 2px, #fff 2px, #fff 4px, #000 4px, #000 7px, #fff 7px, #fff 9px); }
+                        </style>
+                    </head>
+                    <body>
+                        
+                        <div class="original-title">ORIGINAL</div>
+                        
+                        <div class="invoice-container">
+                            
+                            <div class="header">
+                                <div class="letra-box">
+                                    <div class="letra">B</div>
+                                    <div class="cod">COD. 06</div>
+                                </div>
+                                
+                                <div class="header-left">
+                                    <p class="info-text">Razón Social: <span>Tu Empresa Ficticia</span></p>
+                                    <p class="info-text">Domicilio Comercial: <span>Calle Falsa 123</span></p>
+                                    <p class="info-text">Condición frente al IVA: <span>IVA Responsable Inscripto</span></p>
+                                </div>
+                                
+                                <div class="header-right">
+                                    <h1 class="title-factura">FACTURA</h1>
+                                    <p class="info-text">Punto de Venta: <span>0002</span> &nbsp;&nbsp;&nbsp; Comp. Nro: <span>00000641</span></p>
+                                    <p class="info-text">Fecha de Emisión: <span>27/07/2016</span></p>
+                                    <p class="info-text">CUIT: <span>30-11111111-2</span></p>
+                                    <p class="info-text">Ingresos Brutos: <span>1111111</span></p>
+                                    <p class="info-text">Fecha de Inicio de Actividades: <span>01/01/1980</span></p>
+                                </div>
+                            </div>
+
+                            <div class="periodo-row">
+                                <div>Período Facturado Desde: <span style="font-weight:normal">01/07/2016</span></div>
+                                <div>Hasta: <span style="font-weight:normal">31/07/2016</span></div>
+                                <div>Fecha de Vto. para el pago: <span style="font-weight:normal">27/09/2016</span></div>
+                            </div>
+
+                            <div class="cliente-row">
+                                <div class="cliente-col">
+                                    <p class="info-text">CUIT: <span>${datos.cuit}</span></p>
+                                    <p class="info-text">Condición frente al IVA: <span>IVA Sujeto Exento</span></p>
+                                    <p class="info-text">Condición de venta: <span>Cuenta Corriente</span></p>
+                                </div>
+                                <div class="cliente-col">
+                                    <p class="info-text">Apellido y Nombre / Razón Social: <span>${datos.cliente}</span></p>
+                                    <p class="info-text">Domicilio: <span>${datos.domicilio}</span></p>
+                                </div>
+                            </div>
+
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Producto / Servicio</th>
+                                        <th>Cantidad</th>
+                                        <th>U. Medida</th>
+                                        <th>Precio Unit.</th>
+                                        <th>% Bonif</th>
+                                        <th>Imp. Bonif.</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td></td>
+                                        <td>${datos.producto}</td>
+                                        <td>1,00</td>
+                                        <td>otras<br>unidades</td>
+                                        <td>${datos.precio}</td>
+                                        <td>0,00</td>
+                                        <td>0,00</td>
+                                        <td>${datos.precio}</td>
+                                    </tr>
+                                    <tr class="table-body-spacer">
+                                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="totales-row">
+                                <table class="totales-table">
+                                    <tr>
+                                        <td>Subtotal: $</td>
+                                        <td>${datos.precio}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Importe Otros Tributos: $</td>
+                                        <td>0,00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Importe Total: $</td>
+                                        <td>${datos.precio}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <div class="footer">
+                                <div>
+                                    <h2 class="logo-afip">AFIP</h2>
+                                    <p class="logo-text">Comprobante Autorizado</p>
+                                    <div class="barcode"></div>
+                                </div>
+                                <div class="pag-text">Pág. 1/1</div>
+                                <div class="cae-box">
+                                    <p>CAE N°: <span style="font-weight:normal">66304278833647</span></p>
+                                    <p>Fecha de Vto. de CAE: <span style="font-weight:normal">06/08/2016</span></p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </body>
+                    </html>
+                `;
+
+                nuevaVentana.document.write(htmlFactura);
+                nuevaVentana.document.close();
+            }
+
+            exportarDirectoPDF() {
+                window.print();
+            }
+        }
+
+        customElements.define('afip-invoice-form', AfipInvoiceForm);
+
+        function main() {
+            const formFactura = new AfipInvoiceForm();
+            document.body.appendChild(formFactura);
+        }
+
+        // Ejecución directa limpia
+        main();
+    </script>
+</body>
+</html>
