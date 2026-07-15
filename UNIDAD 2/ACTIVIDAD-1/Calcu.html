@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="utf-8" />
     <title>Calculadora MVC y WebComponents</title>
@@ -12,12 +11,10 @@
             display: inline-block;
             box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
         }
-
         table {
             border-collapse: separate;
             border-spacing: 10px;
         }
-
         #display {
             width: 100%;
             box-sizing: border-box;
@@ -29,7 +26,6 @@
             border-radius: 4px;
             color: #333;
         }
-
         button {
             width: 60px;
             height: 50px;
@@ -41,11 +37,9 @@
             font-weight: bold;
             cursor: pointer;
         }
-
-        .btn-blue { background-color: #5584e4; box-shadow: 0px 5px #3a5fae; }
-        .btn-green { background-color: #7ed34d; box-shadow: 0px 5px #5a9c34; }
+        .btn-blue   { background-color: #5584e4; box-shadow: 0px 5px #3a5fae; }
+        .btn-green  { background-color: #7ed34d; box-shadow: 0px 5px #5a9c34; }
         .btn-orange { background-color: #ffaa29; box-shadow: 0px 5px #c5811d; }
-
         .btnDelete {
             color: white;
             font-family: arial;
@@ -61,271 +55,262 @@
         }
     </style>
 </head>
-
 <body>
-    </body>
-
+</body>
 <script type="text/javascript">
 
     // ==========================================
-    // 1. MODELO (Lógica de datos y estado)
+    // 1. MODELO
     // ==========================================
-    class CalculatorModel extends EventTarget {
-        constructor() {
+
+    class CalculatorModel extends EventTarget
+    {
+        constructor()
+        {
             super();
-            this._expression = "";
+            this._expression = '';
         }
 
-        setData(data) {
+        setData(data)
+        {
             this._expression += data;
             this.changed();
         }
 
-        getData() {
+        getData()
+        {
             return this._expression;
         }
 
-        calculate() {
-            try {
+        calculate()
+        {
+            try
+            {
                 this._expression = eval(this._expression).toString();
-            } catch (e) {
-                this._expression = "Error";
+            }
+            catch (e)
+            {
+                this._expression = 'Error';
             }
             this.changed();
         }
 
-        clear() {
-            this._expression = "";
+        clear()
+        {
+            this._expression = '';
             this.changed();
         }
 
-        changed() {
-            this.dispatchEvent(new CustomEvent("change"));
+        changed()
+        {
+            this.dispatchEvent(new CustomEvent('changed'));
         }
     }
 
     // ==========================================
-    // 2. VISTA (WebComponent, Interfaz gráfica)
+    // 2. VISTA
     // ==========================================
-    class CalculatorView extends HTMLElement {
-        constructor() {
+
+    class CalculatorView extends HTMLElement
+    {
+        constructor()
+        {
             super();
 
-            // Contenedores principales
-            this.container = document.createElement('div');
+            this.container           = document.createElement('div');
             this.container.className = 'calculator-container';
-            this.table = document.createElement('table');
-            
-            // Display
-            this.display = document.createElement('input');
-            this.display.id = 'display';
-            this.display.type = 'text';
-            this.display.disabled = true;
+            this.table               = document.createElement('table');
 
-            var trD = document.createElement('tr');
-            var tdD = document.createElement('td');
+            this.display          = document.createElement('input');
+            this.display.id       = 'display';
+            this.display.type     = 'text';
+            this.display.readOnly = true;
+
+            let trD     = document.createElement('tr');
+            let tdD     = document.createElement('td');
             tdD.colSpan = 4;
             tdD.appendChild(this.display);
             trD.appendChild(tdD);
             this.table.appendChild(trD);
 
-            // Creación de botones usando método de apoyo
-            this.btn7 = this.createBtn('7', 'btn-blue');
-            this.btn8 = this.createBtn('8', 'btn-blue');
-            this.btn9 = this.createBtn('9', 'btn-blue');
-            this.btnPlus = this.createBtn('+', 'btn-green');
-
-            this.btn4 = this.createBtn('4', 'btn-blue');
-            this.btn5 = this.createBtn('5', 'btn-blue');
-            this.btn6 = this.createBtn('6', 'btn-blue');
-            this.btnMinus = this.createBtn('-', 'btn-green');
-
-            this.btn3 = this.createBtn('3', 'btn-blue');
-            this.btn2 = this.createBtn('2', 'btn-blue');
-            this.btn1 = this.createBtn('1', 'btn-blue');
+            this.btn7        = this.createBtn('7', 'btn-blue');
+            this.btn8        = this.createBtn('8', 'btn-blue');
+            this.btn9        = this.createBtn('9', 'btn-blue');
+            this.btnPlus     = this.createBtn('+', 'btn-green');
+            this.btn4        = this.createBtn('4', 'btn-blue');
+            this.btn5        = this.createBtn('5', 'btn-blue');
+            this.btn6        = this.createBtn('6', 'btn-blue');
+            this.btnMinus    = this.createBtn('-', 'btn-green');
+            this.btn3        = this.createBtn('3', 'btn-blue');
+            this.btn2        = this.createBtn('2', 'btn-blue');
+            this.btn1        = this.createBtn('1', 'btn-blue');
             this.btnMultiply = this.createBtn('*', 'btn-green');
-
-            this.btn0 = this.createBtn('0', 'btn-blue');
-            this.btnDot = this.createBtn('.', 'btn-blue');
-            this.btnResult = this.createBtn('=', 'btn-orange');
+            this.btn0        = this.createBtn('0', 'btn-blue');
+            this.btnDot      = this.createBtn('.', 'btn-blue');
+            this.btnResult   = this.createBtn('=', 'btn-orange');
             this.btnDivision = this.createBtn('/', 'btn-green');
+            this.btnDelete   = this.createBtn('Borrar', 'btnDelete');
 
-            this.btnDelete = this.createBtn('Borrar', 'btnDelete');
             this.btnDelete.style.width = '100%';
 
-            // Ensamblado de las filas
             this.addRow([this.btn7, this.btn8, this.btn9, this.btnPlus]);
             this.addRow([this.btn4, this.btn5, this.btn6, this.btnMinus]);
             this.addRow([this.btn3, this.btn2, this.btn1, this.btnMultiply]);
             this.addRow([this.btn0, this.btnDot, this.btnResult, this.btnDivision]);
-            
-            // Fila del botón borrar
-            var trDel = document.createElement('tr');
-            var tdDel = document.createElement('td');
+
+            let trDel     = document.createElement('tr');
+            let tdDel     = document.createElement('td');
             tdDel.colSpan = 4;
             tdDel.appendChild(this.btnDelete);
             trDel.appendChild(tdDel);
             this.table.appendChild(trDel);
 
-            // Inyección al DOM interno del componente
             this.container.appendChild(this.table);
             this.appendChild(this.container);
         }
 
-        // Método de apoyo para crear botones 
-        createBtn(text, className) {
-            var btn = document.createElement('button');
+        createBtn(text, className)
+        {
+            let btn       = document.createElement('button');
             btn.innerText = text;
-            btn.value = text; // Se asigna el valor para recuperarlo fácilmente en el evento
+            btn.value     = text;
             btn.className = className;
             return btn;
         }
 
-        // Método de apoyo para agregar filas iterando con bucle tradicional
-        addRow(buttons) {
-            var tr = document.createElement('tr');
-            for(var i = 0; i < buttons.length; i++) {
-                var td = document.createElement('td');
+        addRow(buttons)
+        {
+            let tr = document.createElement('tr');
+            for (let i = 0; i < buttons.length; i++)
+            {
+                let td = document.createElement('td');
                 td.appendChild(buttons[i]);
                 tr.appendChild(td);
             }
             this.table.appendChild(tr);
         }
 
-        // --- Traducción de eventos visuales a eventos semánticos ---
-        onButtonClick(event) {
-            this.dispatchEvent(new CustomEvent("buttonClick", { detail: event.target.value }));
+        _despacharRequest(detail)
+        {
+            this.dispatchEvent(new CustomEvent('request', { detail: detail }));
         }
 
-        onCalculate() {
-            this.dispatchEvent(new CustomEvent("request", { detail: "calculate" }));
-        }
-
-        onDelete() {
-            this.dispatchEvent(new CustomEvent("request", { detail: "delete" }));
-        }
-
-        // Actualización de estado visual
-        setData(data) {
+        update(data)
+        {
             this.display.value = data;
         }
 
-        // --- Ciclo de vida estricto ---
-        connectedCallback() {
-            console.log("Calculadora MVC (Vista) agregada al DOM");
-            
-            // Números y Operaciones
-            this.btn0.onclick = this.onButtonClick.bind(this);
-            this.btn1.onclick = this.onButtonClick.bind(this);
-            this.btn2.onclick = this.onButtonClick.bind(this);
-            this.btn3.onclick = this.onButtonClick.bind(this);
-            this.btn4.onclick = this.onButtonClick.bind(this);
-            this.btn5.onclick = this.onButtonClick.bind(this);
-            this.btn6.onclick = this.onButtonClick.bind(this);
-            this.btn7.onclick = this.onButtonClick.bind(this);
-            this.btn8.onclick = this.onButtonClick.bind(this);
-            this.btn9.onclick = this.onButtonClick.bind(this);
-            
-            this.btnDot.onclick = this.onButtonClick.bind(this);
-            this.btnPlus.onclick = this.onButtonClick.bind(this);
-            this.btnMinus.onclick = this.onButtonClick.bind(this);
-            this.btnMultiply.onclick = this.onButtonClick.bind(this);
-            this.btnDivision.onclick = this.onButtonClick.bind(this);
+        connectedCallback()
+        {
+            console.log('CalculatorView agregada al DOM');
 
-            // Operaciones Especiales
-            this.btnResult.onclick = this.onCalculate.bind(this);
-            this.btnDelete.onclick = this.onDelete.bind(this);
+            this.btn0.addEventListener('click',        this._despacharRequest.bind(this, '0'));
+            this.btn1.addEventListener('click',        this._despacharRequest.bind(this, '1'));
+            this.btn2.addEventListener('click',        this._despacharRequest.bind(this, '2'));
+            this.btn3.addEventListener('click',        this._despacharRequest.bind(this, '3'));
+            this.btn4.addEventListener('click',        this._despacharRequest.bind(this, '4'));
+            this.btn5.addEventListener('click',        this._despacharRequest.bind(this, '5'));
+            this.btn6.addEventListener('click',        this._despacharRequest.bind(this, '6'));
+            this.btn7.addEventListener('click',        this._despacharRequest.bind(this, '7'));
+            this.btn8.addEventListener('click',        this._despacharRequest.bind(this, '8'));
+            this.btn9.addEventListener('click',        this._despacharRequest.bind(this, '9'));
+            this.btnDot.addEventListener('click',      this._despacharRequest.bind(this, '.'));
+            this.btnPlus.addEventListener('click',     this._despacharRequest.bind(this, '+'));
+            this.btnMinus.addEventListener('click',    this._despacharRequest.bind(this, '-'));
+            this.btnMultiply.addEventListener('click', this._despacharRequest.bind(this, '*'));
+            this.btnDivision.addEventListener('click', this._despacharRequest.bind(this, '/'));
+            this.btnResult.addEventListener('click',   this._despacharRequest.bind(this, '='));
+            this.btnDelete.addEventListener('click',   this._despacharRequest.bind(this, 'borrar'));
         }
 
-        disconnectedCallback() {
-            console.log("Calculadora MVC (Vista) removida del DOM");
+        disconnectedCallback()
+        {
+            console.log('CalculatorView removida del DOM');
 
-            // Limpieza 
-            this.btn0.onclick = null;
-            this.btn1.onclick = null;
-            this.btn2.onclick = null;
-            this.btn3.onclick = null;
-            this.btn4.onclick = null;
-            this.btn5.onclick = null;
-            this.btn6.onclick = null;
-            this.btn7.onclick = null;
-            this.btn8.onclick = null;
-            this.btn9.onclick = null;
-            
-            this.btnDot.onclick = null;
-            this.btnPlus.onclick = null;
-            this.btnMinus.onclick = null;
-            this.btnMultiply.onclick = null;
-            this.btnDivision.onclick = null;
-
-            this.btnResult.onclick = null;
-            this.btnDelete.onclick = null;
+            this.btn0.removeEventListener('click',        this._despacharRequest.bind(this, '0'));
+            this.btn1.removeEventListener('click',        this._despacharRequest.bind(this, '1'));
+            this.btn2.removeEventListener('click',        this._despacharRequest.bind(this, '2'));
+            this.btn3.removeEventListener('click',        this._despacharRequest.bind(this, '3'));
+            this.btn4.removeEventListener('click',        this._despacharRequest.bind(this, '4'));
+            this.btn5.removeEventListener('click',        this._despacharRequest.bind(this, '5'));
+            this.btn6.removeEventListener('click',        this._despacharRequest.bind(this, '6'));
+            this.btn7.removeEventListener('click',        this._despacharRequest.bind(this, '7'));
+            this.btn8.removeEventListener('click',        this._despacharRequest.bind(this, '8'));
+            this.btn9.removeEventListener('click',        this._despacharRequest.bind(this, '9'));
+            this.btnDot.removeEventListener('click',      this._despacharRequest.bind(this, '.'));
+            this.btnPlus.removeEventListener('click',     this._despacharRequest.bind(this, '+'));
+            this.btnMinus.removeEventListener('click',    this._despacharRequest.bind(this, '-'));
+            this.btnMultiply.removeEventListener('click', this._despacharRequest.bind(this, '*'));
+            this.btnDivision.removeEventListener('click', this._despacharRequest.bind(this, '/'));
+            this.btnResult.removeEventListener('click',   this._despacharRequest.bind(this, '='));
+            this.btnDelete.removeEventListener('click',   this._despacharRequest.bind(this, 'borrar'));
         }
     }
 
-    // Registro obligatorio en la API de WebComponents
     customElements.define('x-calculator', CalculatorView);
 
     // ==========================================
-    // 3. CONTROLADOR (Mediador)
+    // 3. CONTROLADOR
     // ==========================================
-    class CalculatorController {
-        constructor(view, model) {
-            this.view = view;
+
+    class CalculatorController
+    {
+        constructor(view, model)
+        {
+            this.view  = view;
             this.model = model;
-
-            // Conservamos las referencias para poder removerlas en disable()
-            this.onButtonClickFunction = this.onViewButtonClick.bind(this);
-            this.onRequestFunction = this.onViewRequest.bind(this);
-            this.onModelChangeFunction = this.onModelChange.bind(this);
         }
 
-        enable() {
-            this.view.addEventListener("buttonClick", this.onButtonClickFunction);
-            this.view.addEventListener("request", this.onRequestFunction);
-            this.model.addEventListener("change", this.onModelChangeFunction);
+        init()
+        {
+            this.model.addEventListener('changed', this.onModelChanged.bind(this));
+            this.view.addEventListener('request',  this.onViewRequest.bind(this));
+            this.view.update(this.model.getData());
         }
 
-        disable() {
-            this.view.removeEventListener("buttonClick", this.onButtonClickFunction);
-            this.view.removeEventListener("request", this.onRequestFunction);
-            this.model.removeEventListener("change", this.onModelChangeFunction);
+        release()
+        {
+            this.model.removeEventListener('changed', this.onModelChanged.bind(this));
+            this.view.removeEventListener('request',  this.onViewRequest.bind(this));
         }
 
-        onViewButtonClick(event) {
-            this.model.setData(event.detail);
-        }
-
-        onViewRequest(event) {
-            if (event.detail === "calculate") {
+        onViewRequest(event)
+        {
+            if (event.detail === '=')
+            {
                 this.model.calculate();
             }
-            if (event.detail === "delete") {
+            else if (event.detail === 'borrar')
+            {
                 this.model.clear();
+            }
+            else
+            {
+                this.model.setData(event.detail);
             }
         }
 
-        onModelChange() {
-            this.view.setData(this.model.getData());
+        onModelChanged()
+        {
+            this.view.update(this.model.getData());
         }
     }
 
     // ==========================================
-    // 4. INICIALIZACIÓN
+    // 4. MAIN
     // ==========================================
-    function main() {
-        var model = new CalculatorModel();
-        var view = new CalculatorView();
-        var controller = new CalculatorController(view, model);
 
-        // Activamos la comunicación
-        controller.enable();
+    function main()
+    {
+        let model      = new CalculatorModel();
+        let view       = new CalculatorView();
+        let controller = new CalculatorController(view, model);
 
-        // Inyectamos la vista al DOM
+        controller.init();
+
         document.body.appendChild(view);
     }
 
-    // Disparador
     window.onload = main;
 
 </script>

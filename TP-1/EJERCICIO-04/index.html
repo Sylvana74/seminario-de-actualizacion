@@ -117,17 +117,16 @@
 
             this.appendChild(this.wrapper);
             
-            // Inyectamos un mensaje inicial de bienvenida usando nuestro método
+            // Inyectamos un mensaje inicial de bienvenida 
             this.insertarMensaje("¡Hola! ¿En qué te puedo ayudar hoy?", false);
         }
 
-        // 2. EL MÉTODO PRINCIPAL SOLICITADO EN LA CONSIGNA
-        // Construye el HTML de la burbuja y la inserta en el chat
+        
         insertarMensaje(texto, esMio) {
             let msgDiv = document.createElement('div');
             msgDiv.className = 'msg-container';
             
-            // Si no es mío, le ponemos la clase oscura de W3Schools
+            
             if (!esMio) {
                 msgDiv.className += ' darker';
             }
@@ -167,11 +166,11 @@
         onEnviarClick() {
             let texto = this.inputTexto.value;
             if (texto.trim() !== "") {
-                // Insertamos el mensaje como propio (esMio = true)
+                
                 this.insertarMensaje(texto, true);
                 this.inputTexto.value = "";
                 
-                // Simulamos una respuesta a los 1.5 segundos para probar la función
+                
                 setTimeout(this.simularRespuesta.bind(this), 1500);
             }
         }

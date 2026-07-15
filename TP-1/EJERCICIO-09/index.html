@@ -83,7 +83,7 @@
                 this.btnGrabar.textContent = "🎤 Iniciar Dictado";
             }
 
-            // 4. CICLO DE VIDA: CONECTAR (Súper limpio, sin arrow functions)
+            // 4. CICLO DE VIDA: CONECTAR 
             connectedCallback() {
                 this.btnGrabar.onclick = this.iniciarGrabacion.bind(this);
                 if (this.reconocimiento) {

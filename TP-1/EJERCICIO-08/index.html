@@ -208,7 +208,7 @@
                 XLSX.writeFile(libro, "clima_mdp.xlsx");
             }
 
-            // Usamos funciones tradicionales en los callbacks (nada de flechas)
+            
             exportarPNG() {
                 this.btnCaja.style.display = 'none'; // Ocultamos botones para la foto
                 html2canvas(this.container).then(function(canvas) {
@@ -227,7 +227,7 @@
                 }.bind(this));
             }
 
-            // CICLO DE VIDA (100% LIMPIO)
+            // CICLO DE VIDA 
             connectedCallback() {
                 this.btnToggle.onclick = this.onBtnToggleClick.bind(this);
                 this.btnImprimir.onclick = this.imprimir.bind(this);

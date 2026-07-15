@@ -14,7 +14,7 @@
             // Estado inicial del botón (Ejercicio 7)
             this.enFahrenheit = false;
 
-            // Datos extraídos EXACTAMENTE de la imagen de Wikipedia con su "tipo" para pintarlos
+            
             this.datosClima = [
                 { nombre: "Temp. máx. abs.", tipo: "temp", valores: [42.4, 38.1, 36.3, 32.5, 27.4, 22.2, 27.7, 24.7, 28.8, 34.4, 35.7, 39.4, 39.4] },
                 { nombre: "Temp. máx. media", tipo: "temp", valores: [26.3, 25.8, 23.7, 20.5, 16.8, 13.8, 13.1, 14.4, 16.0, 18.5, 21.7, 24.4, 19.6] },
@@ -88,13 +88,13 @@
             return promedios;
         }
 
-        // 3. LÓGICA DE CONVERSIÓN Y COLORES DE WIKIPEDIA
+        // 3. LÓGICA DE CONVERSIÓN Y COLORES 
         convertirTemperatura(celsius) {
             return (celsius * 9/5) + 32;
         }
 
         obtenerColorCelda(valorCelsius, tipo) {
-            // Mapa de calor exacto de la imagen para Temperaturas
+            // Mapa de calor para Temperaturas
             if (tipo === "temp") {
                 if (valorCelsius >= 40) return { bg: '#b30000', text: 'white' };
                 if (valorCelsius >= 35) return { bg: '#cc0000', text: 'white' };
@@ -162,7 +162,7 @@
                     let td = document.createElement('td');
                     let valorOriginalCelsius = filaData.valores[j]; // El color siempre se calcula en base al Celsius
                     
-                    // Aplicamos los colores exactos de Wikipedia a la celda
+                    // Aplicamos los colores 
                     let estiloColor = this.obtenerColorCelda(valorOriginalCelsius, filaData.tipo);
                     td.style.backgroundColor = estiloColor.bg;
                     td.style.color = estiloColor.text;
