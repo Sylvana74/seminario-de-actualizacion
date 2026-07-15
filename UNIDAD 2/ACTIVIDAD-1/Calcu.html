@@ -2,264 +2,331 @@
 <html lang="es">
 
 <head>
-	<meta charset="utf-8" />
-	<title>Calculadora MVC - Web Component</title>
-	<style>
-		
-		.calculator-container {
-			background-color: #f5f5f5;
-			padding: 20px;
-			border-radius: 8px;
-			display: inline-block;
-			box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
-		}
+    <meta charset="utf-8" />
+    <title>Calculadora MVC y WebComponents</title>
+    <style>
+        .calculator-container {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            display: inline-block;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+        }
 
-		table {
-			border-collapse: separate;
-			border-spacing: 10px;
-		}
+        table {
+            border-collapse: separate;
+            border-spacing: 10px;
+        }
 
-		#display {
-			width: 100%;
-			box-sizing: border-box;
-			height: 50px;
-			text-align: right;
-			font-size: 28px;
-			padding: 5px 10px;
-			border: 1px solid #ddd;
-			border-radius: 4px;
-			color: #333;
-			background-color: white;
-		}
+        #display {
+            width: 100%;
+            box-sizing: border-box;
+            height: 50px;
+            text-align: right;
+            font-size: 28px;
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #333;
+        }
 
-		button {
-			width: 60px;
-			height: 50px;
-			border: none;
-			border-radius: 6px;
-			color: white;
-			font-family: Arial, sans-serif;
-			font-size: 20px;
-			font-weight: bold;
-			cursor: pointer;
-		}
+        button {
+            width: 60px;
+            height: 50px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-		button:active {
-			transform: translateY(4px);
-			box-shadow: 0px 0px transparent !important;
-		}
+        .btn-blue { background-color: #5584e4; box-shadow: 0px 5px #3a5fae; }
+        .btn-green { background-color: #7ed34d; box-shadow: 0px 5px #5a9c34; }
+        .btn-orange { background-color: #ffaa29; box-shadow: 0px 5px #c5811d; }
 
-		.btn-blue { background-color: #5584e4; box-shadow: 0px 5px #3a5fae; }
-		.btn-green { background-color: #7ed34d; box-shadow: 0px 5px #5a9c34; }
-		.btn-orange { background-color: #ffaa29; box-shadow: 0px 5px #c5811d; }
-
-		.btnDelete {
-			color: white;
-			font-family: Arial, sans-serif;
-			font-weight: bold;
-			font-size: 18px;
-			background-color: #dc422d;
-			box-shadow: 0px 5px #a62d1d;
-			width: 100%;
-			height: 40px; 
-			border-radius: 6px;
-			border: none;
-			cursor: pointer;
-		}
-	</style>
+        .btnDelete {
+            color: white;
+            font-family: arial;
+            font-weight: bold;
+            font-size: 70%;
+            background-color: red;
+            box-shadow: 0px 5px #BB3E22;
+            width: 100%;
+            height: 30px;
+            border-radius: 6px;
+            border-color: #BB3E22;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
-	</body>
+    </body>
 
 <script type="text/javascript">
 
-// ==========================================
-// 1. EL MODELO (Lógica de negocio y datos)
-// ==========================================
-class CalculatorModel {
-	constructor() {
-		this.expression = '';
-	}
+    // ==========================================
+    // 1. MODELO (Lógica de datos y estado)
+    // ==========================================
+    class CalculatorModel extends EventTarget {
+        constructor() {
+            super();
+            this._expression = "";
+        }
 
-	appendValue(value) {
-		this.expression += value;
-	}
+        setData(data) {
+            this._expression += data;
+            this.changed();
+        }
 
-	clear() {
-		this.expression = '';
-	}
+        getData() {
+            return this._expression;
+        }
 
-	calculate() {
-		try {
-			// Si la expresión está vacía, no hacemos nada
-			if (this.expression === '') return; 
-			this.expression = eval(this.expression).toString();
-		} catch (e) {
-			this.expression = 'Error';
-		}
-	}
+        calculate() {
+            try {
+                this._expression = eval(this._expression).toString();
+            } catch (e) {
+                this._expression = "Error";
+            }
+            this.changed();
+        }
 
-	getExpression() {
-		return this.expression;
-	}
-}
+        clear() {
+            this._expression = "";
+            this.changed();
+        }
 
-// ==========================================
-// 2. LA VISTA (Interfaz de usuario y DOM)
-// ==========================================
-class CalculatorView {
-	constructor(rootElement) {
-		this.root = rootElement; // El Web Component en sí mismo
-		this.buttonsList = [];
-		this.buildDOM();
-	}
+        changed() {
+            this.dispatchEvent(new CustomEvent("change"));
+        }
+    }
 
-	// Construye todos los elementos del DOM de la calculadora
-	buildDOM() {
-		this.container = document.createElement('div');
-		this.container.className = 'calculator-container';
-		this.table = document.createElement('table');
+    // ==========================================
+    // 2. VISTA (WebComponent, Interfaz gráfica)
+    // ==========================================
+    class CalculatorView extends HTMLElement {
+        constructor() {
+            super();
 
-		// Fila del Display
-		const trDisplay = document.createElement('tr');
-		const tdDisplay = document.createElement('td');
-		tdDisplay.colSpan = 4;
+            // Contenedores principales
+            this.container = document.createElement('div');
+            this.container.className = 'calculator-container';
+            this.table = document.createElement('table');
+            
+            // Display
+            this.display = document.createElement('input');
+            this.display.id = 'display';
+            this.display.type = 'text';
+            this.display.disabled = true;
 
-		this.display = document.createElement('input');
-		this.display.id = 'display';
-		this.display.type = 'text';
-		this.display.value = '';
-		this.display.disabled = true;
+            var trD = document.createElement('tr');
+            var tdD = document.createElement('td');
+            tdD.colSpan = 4;
+            tdD.appendChild(this.display);
+            trD.appendChild(tdD);
+            this.table.appendChild(trD);
 
-		tdDisplay.appendChild(this.display);
-		trDisplay.appendChild(tdDisplay);
-		this.table.appendChild(trDisplay);
+            // Creación de botones usando método de apoyo
+            this.btn7 = this.createBtn('7', 'btn-blue');
+            this.btn8 = this.createBtn('8', 'btn-blue');
+            this.btn9 = this.createBtn('9', 'btn-blue');
+            this.btnPlus = this.createBtn('+', 'btn-green');
 
-		// Teclado
-		const keyboardLayout = [
-			[ {t:'7', c:'btn-blue'}, {t:'8', c:'btn-blue'}, {t:'9', c:'btn-blue'}, {t:'+', c:'btn-green'} ],
-			[ {t:'4', c:'btn-blue'}, {t:'5', c:'btn-blue'}, {t:'6', c:'btn-blue'}, {t:'-', c:'btn-green'} ],
-			[ {t:'3', c:'btn-blue'}, {t:'2', c:'btn-blue'}, {t:'1', c:'btn-blue'}, {t:'*', c:'btn-green'} ],
-			[ {t:'0', c:'btn-blue'}, {t:'.', c:'btn-blue'}, {t:'=', c:'btn-orange'}, {t:'/', c:'btn-green'} ]
-		];
+            this.btn4 = this.createBtn('4', 'btn-blue');
+            this.btn5 = this.createBtn('5', 'btn-blue');
+            this.btn6 = this.createBtn('6', 'btn-blue');
+            this.btnMinus = this.createBtn('-', 'btn-green');
 
-		keyboardLayout.forEach(rowData => {
-			const tr = document.createElement('tr');
-			rowData.forEach(btnData => {
-				const td = document.createElement('td');
-				const btn = document.createElement('button');
-				btn.innerText = btnData.t;
-				btn.className = btnData.c;
-				
-				td.appendChild(btn);
-				tr.appendChild(td);
-				this.buttonsList.push(btn);
-			});
-			this.table.appendChild(tr);
-		});
+            this.btn3 = this.createBtn('3', 'btn-blue');
+            this.btn2 = this.createBtn('2', 'btn-blue');
+            this.btn1 = this.createBtn('1', 'btn-blue');
+            this.btnMultiply = this.createBtn('*', 'btn-green');
 
-		// Botón Borrar
-		const trDelete = document.createElement('tr');
-		const tdDelete = document.createElement('td');
-		tdDelete.colSpan = 4;
+            this.btn0 = this.createBtn('0', 'btn-blue');
+            this.btnDot = this.createBtn('.', 'btn-blue');
+            this.btnResult = this.createBtn('=', 'btn-orange');
+            this.btnDivision = this.createBtn('/', 'btn-green');
 
-		this.btnDelete = document.createElement('button');
-		this.btnDelete.innerText = 'Borrar';
-		this.btnDelete.className = 'btnDelete';
+            this.btnDelete = this.createBtn('Borrar', 'btnDelete');
+            this.btnDelete.style.width = '100%';
 
-		tdDelete.appendChild(this.btnDelete);
-		trDelete.appendChild(tdDelete);
-		this.table.appendChild(trDelete);
+            // Ensamblado de las filas
+            this.addRow([this.btn7, this.btn8, this.btn9, this.btnPlus]);
+            this.addRow([this.btn4, this.btn5, this.btn6, this.btnMinus]);
+            this.addRow([this.btn3, this.btn2, this.btn1, this.btnMultiply]);
+            this.addRow([this.btn0, this.btnDot, this.btnResult, this.btnDivision]);
+            
+            // Fila del botón borrar
+            var trDel = document.createElement('tr');
+            var tdDel = document.createElement('td');
+            tdDel.colSpan = 4;
+            tdDel.appendChild(this.btnDelete);
+            trDel.appendChild(tdDel);
+            this.table.appendChild(trDel);
 
-		// Ensamblar
-		this.container.appendChild(this.table);
-		this.root.appendChild(this.container);
-	}
+            // Inyección al DOM interno del componente
+            this.container.appendChild(this.table);
+            this.appendChild(this.container);
+        }
 
-	// Método para actualizar la pantalla desde el Controlador
-	updateDisplay(value) {
-		this.display.value = value;
-	}
+        // Método de apoyo para crear botones 
+        createBtn(text, className) {
+            var btn = document.createElement('button');
+            btn.innerText = text;
+            btn.value = text; // Se asigna el valor para recuperarlo fácilmente en el evento
+            btn.className = className;
+            return btn;
+        }
 
-	// Métodos para vincular eventos a los controladores
-	bindGeneralButtons(handler) {
-		this.generalHandler = (event) => handler(event.target.innerText);
-		this.buttonsList.forEach(btn => {
-			btn.onclick = this.generalHandler;
-		});
-	}
+        // Método de apoyo para agregar filas iterando con bucle tradicional
+        addRow(buttons) {
+            var tr = document.createElement('tr');
+            for(var i = 0; i < buttons.length; i++) {
+                var td = document.createElement('td');
+                td.appendChild(buttons[i]);
+                tr.appendChild(td);
+            }
+            this.table.appendChild(tr);
+        }
 
-	bindDeleteButton(handler) {
-		this.deleteHandler = handler;
-		this.btnDelete.onclick = this.deleteHandler;
-	}
+        // --- Traducción de eventos visuales a eventos semánticos ---
+        onButtonClick(event) {
+            this.dispatchEvent(new CustomEvent("buttonClick", { detail: event.target.value }));
+        }
 
-	// Limpieza de eventos
-	unbindEvents() {
-		this.buttonsList.forEach(btn => {
-			btn.onclick = null;
-		});
-		this.btnDelete.onclick = null;
-	}
-}
+        onCalculate() {
+            this.dispatchEvent(new CustomEvent("request", { detail: "calculate" }));
+        }
 
-// ==========================================
-// 3. EL CONTROLADOR (Web Component)
-// ==========================================
-class CalculatorComponent extends HTMLElement {
-	constructor() {
-		super();
-		// Instanciamos el Modelo y la Vista
-		this.model = new CalculatorModel();
-		this.view = new CalculatorView(this); 
+        onDelete() {
+            this.dispatchEvent(new CustomEvent("request", { detail: "delete" }));
+        }
 
-		// Binds de los métodos del controlador
-		this.handleInput = this.handleInput.bind(this);
-		this.handleDelete = this.handleDelete.bind(this);
-	}
+        // Actualización de estado visual
+        setData(data) {
+            this.display.value = data;
+        }
 
-	// Lógica de coordinación: La vista avisa que hubo un click
-	handleInput(value) {
-		if (value === '=') {
-			this.model.calculate(); // Pedimos al modelo que calcule
-		} else {
-			this.model.appendValue(value); // Pedimos al modelo que guarde el valor
-		}
-		// Le pasamos el estado actualizado a la vista
-		this.view.updateDisplay(this.model.getExpression());
-	}
+        // --- Ciclo de vida estricto ---
+        connectedCallback() {
+            console.log("Calculadora MVC (Vista) agregada al DOM");
+            
+            // Números y Operaciones
+            this.btn0.onclick = this.onButtonClick.bind(this);
+            this.btn1.onclick = this.onButtonClick.bind(this);
+            this.btn2.onclick = this.onButtonClick.bind(this);
+            this.btn3.onclick = this.onButtonClick.bind(this);
+            this.btn4.onclick = this.onButtonClick.bind(this);
+            this.btn5.onclick = this.onButtonClick.bind(this);
+            this.btn6.onclick = this.onButtonClick.bind(this);
+            this.btn7.onclick = this.onButtonClick.bind(this);
+            this.btn8.onclick = this.onButtonClick.bind(this);
+            this.btn9.onclick = this.onButtonClick.bind(this);
+            
+            this.btnDot.onclick = this.onButtonClick.bind(this);
+            this.btnPlus.onclick = this.onButtonClick.bind(this);
+            this.btnMinus.onclick = this.onButtonClick.bind(this);
+            this.btnMultiply.onclick = this.onButtonClick.bind(this);
+            this.btnDivision.onclick = this.onButtonClick.bind(this);
 
-	handleDelete() {
-		this.model.clear();
-		this.view.updateDisplay(this.model.getExpression());
-	}
+            // Operaciones Especiales
+            this.btnResult.onclick = this.onCalculate.bind(this);
+            this.btnDelete.onclick = this.onDelete.bind(this);
+        }
 
-	// Ciclo de vida: Iniciar eventos
-	connectedCallback() {
-		console.log('Controlador MVC conectado al DOM');
-		this.view.bindGeneralButtons(this.handleInput);
-		this.view.bindDeleteButton(this.handleDelete);
-	}
+        disconnectedCallback() {
+            console.log("Calculadora MVC (Vista) removida del DOM");
 
-	// Ciclo de vida: Limpiar memoria
-	disconnectedCallback() {
-		console.log('Controlador MVC desconectado');
-		this.view.unbindEvents();
-	}
-}
+            // Limpieza 
+            this.btn0.onclick = null;
+            this.btn1.onclick = null;
+            this.btn2.onclick = null;
+            this.btn3.onclick = null;
+            this.btn4.onclick = null;
+            this.btn5.onclick = null;
+            this.btn6.onclick = null;
+            this.btn7.onclick = null;
+            this.btn8.onclick = null;
+            this.btn9.onclick = null;
+            
+            this.btnDot.onclick = null;
+            this.btnPlus.onclick = null;
+            this.btnMinus.onclick = null;
+            this.btnMultiply.onclick = null;
+            this.btnDivision.onclick = null;
 
-// Registro del componente
-customElements.define('x-calculator-mvc', CalculatorComponent);
+            this.btnResult.onclick = null;
+            this.btnDelete.onclick = null;
+        }
+    }
 
-// Función principal
-function main() {
-	let myCalculatorMVC = new CalculatorComponent();
-	document.body.appendChild(myCalculatorMVC);
-}
+    // Registro obligatorio en la API de WebComponents
+    customElements.define('x-calculator', CalculatorView);
 
-window.onload = main;
+    // ==========================================
+    // 3. CONTROLADOR (Mediador)
+    // ==========================================
+    class CalculatorController {
+        constructor(view, model) {
+            this.view = view;
+            this.model = model;
+
+            // Conservamos las referencias para poder removerlas en disable()
+            this.onButtonClickFunction = this.onViewButtonClick.bind(this);
+            this.onRequestFunction = this.onViewRequest.bind(this);
+            this.onModelChangeFunction = this.onModelChange.bind(this);
+        }
+
+        enable() {
+            this.view.addEventListener("buttonClick", this.onButtonClickFunction);
+            this.view.addEventListener("request", this.onRequestFunction);
+            this.model.addEventListener("change", this.onModelChangeFunction);
+        }
+
+        disable() {
+            this.view.removeEventListener("buttonClick", this.onButtonClickFunction);
+            this.view.removeEventListener("request", this.onRequestFunction);
+            this.model.removeEventListener("change", this.onModelChangeFunction);
+        }
+
+        onViewButtonClick(event) {
+            this.model.setData(event.detail);
+        }
+
+        onViewRequest(event) {
+            if (event.detail === "calculate") {
+                this.model.calculate();
+            }
+            if (event.detail === "delete") {
+                this.model.clear();
+            }
+        }
+
+        onModelChange() {
+            this.view.setData(this.model.getData());
+        }
+    }
+
+    // ==========================================
+    // 4. INICIALIZACIÓN
+    // ==========================================
+    function main() {
+        var model = new CalculatorModel();
+        var view = new CalculatorView();
+        var controller = new CalculatorController(view, model);
+
+        // Activamos la comunicación
+        controller.enable();
+
+        // Inyectamos la vista al DOM
+        document.body.appendChild(view);
+    }
+
+    // Disparador
+    window.onload = main;
 
 </script>
-
 </html>
