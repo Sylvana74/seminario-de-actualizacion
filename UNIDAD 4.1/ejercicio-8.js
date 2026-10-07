@@ -55,5 +55,4 @@ function main() {
     document.getElementById('app').appendChild(myView);
 }
 
-// ¡Asegúrate de que esta línea esté presente al final!
 main();

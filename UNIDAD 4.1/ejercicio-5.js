@@ -12,7 +12,7 @@ function main() {
     let centroX = myView._canvas.width / 2;   // 250
     let centroY = myView._canvas.height / 2;  // 250
 
-    // Array de puntajes provisto por la consigna (del centro hacia afuera o viceversa)
+    // Array de puntajes (del centro hacia afuera o viceversa)
     // [1000 (centro), 750, 500, 100, 50 (exterior)]
     let puntajes = [1000, 750, 500, 100, 50];
     let espaciado = 25;
@@ -40,7 +40,7 @@ function main() {
         ctx.fillText(puntajeActual, centroX, posYTexto);
     }
 
-    // Dibujar un círculo central sólido o punto para el 1000 (opcional para completar el centro)
+    // Dibujar un círculo central sólido o punto para el 1000 
     ctx.beginPath();
     ctx.arc(centroX, centroY, 8, 0, Math.PI * 2);
     ctx.fillStyle = 'black';
