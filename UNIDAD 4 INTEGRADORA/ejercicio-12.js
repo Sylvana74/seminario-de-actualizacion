@@ -87,7 +87,7 @@ loadBtn.addEventListener('click', () => {
         try {
             let figureData = JSON.parse(jsonStr);
             
-            // Anexamos las propiedades de línea seleccionadas en los inputs de la interfaz[cite: 5]
+            // Anexamos las propiedades de línea seleccionadas en los inputs de la interfaz
             figureData.lineWidth = parseInt(inputGrosor.value) || 1;
             
             if (selectTipo.value === 'dashed') {
