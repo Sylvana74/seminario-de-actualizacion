@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+    <meta charset="utf-8" />
+    <title>Seminario - Guía de Ejercicios</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        #menu { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <div id="menu">
+        <label for="selector">Seleccionar Ejercicio: </label>
+        <select id="selector">
+            <option value="">-- Elija una opción --</option>
+            <option value="ejercicio-6.js">Ejercicio 6: Integración Capítulo 1 (MVC, JSON y Limpieza)</option>
+            <option value="ejercicio-12.js">Ejercicio 12: Integración Capítulo 2 (Bordes y Estilos)</option>
+        </select>
+    </div>
+
+    <!-- Contenedor donde se montará dinámicamente el canvas del ejercicio -->
+    <div id="app"></div>
+
+    <!-- Cargamos la base MVC obligatoria -->
+    <script src="MVCCanvas.js"></script>
+
+    <script>
+        // Lógica para cargar dinámicamente el archivo del ejercicio seleccionado
+        document.getElementById('selector').addEventListener('change', function() {
+            let archivo = this.value;
+            let contenedor = document.getElementById('app');
+            contenedor.innerHTML = ''; // Limpiamos el canvas anterior
+
+            if (archivo) {
+                // Eliminamos script anterior si existía para evitar superposiciones
+                let scriptAnterior = document.getElementById('script-ejercicio');
+                if (scriptAnterior) scriptAnterior.remove();
+
+                // Creamos y cargamos el nuevo script del ejercicio
+                let script = document.createElement('script');
+                script.id = 'script-ejercicio';
+                script.src = archivo;
+                document.body.appendChild(script);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+ejercicio 6
+cicle
+{"type": "circle", "x": 100, "y": 100, "radius": 40}
+
+polígono
+{"type": "polygon", "points":[{"x": 600, "y": 100}, {"x": 700, "y": 300}, {"x": 500, "y": 300}]}

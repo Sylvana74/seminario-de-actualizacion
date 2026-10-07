@@ -1,0 +1,3 @@
+ejercicio 12
+
+{"type": "circle", "x": 400, "y": 300, "radius": 90}
