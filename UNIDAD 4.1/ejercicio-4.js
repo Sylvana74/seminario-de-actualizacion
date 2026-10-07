@@ -4,7 +4,7 @@ function main() {
     let myController = new Controller(myView, myModel);
     myController.enable();
 
-    // 1. Configurar el área de dibujo como un cuadrado de 500x500px según la consigna
+    // 1. Configurar el área de dibujo como un cuadrado de 500x500px
     myView._canvas.width = 500;
     myView._canvas.height = 500;
 

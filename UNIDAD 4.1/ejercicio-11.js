@@ -22,7 +22,7 @@ function main() {
         if (contador % 2 === 0) {
             ctx.setLineDash([]);        // Línea sólida / continua
         } else {
-            ctx.setLineDash([8, 6]);    // Línea punteada: 8px de trazo, 6px de espacio[cite: 5]
+            ctx.setLineDash([8, 6]);    // Línea punteada: 8px de trazo, 6px de espacio
         }
 
         // Trazar línea diagonal de arriba a abajo
