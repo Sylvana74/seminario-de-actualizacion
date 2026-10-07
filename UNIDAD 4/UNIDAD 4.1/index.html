@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Seminario - Guía de Ejercicios</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        #menu { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <div id="menu">
+        <label for="selector">Seleccionar Ejercicio: </label>
+        <select id="selector">
+            <option value="">-- Elija una opción --</option>
+            <option value="ejercicio-1.js">Ejercicio 1: Cruz Diagonal</option>
+            <option value="ejercicio-2.js">Ejercicio 2: Triángulo Centrado</option>
+            <option value="ejercicio-3.js">Ejercicio 3: Polígono Centrado</option>
+            <option value="ejercicio-4.js">Ejercicio 4: Círculos Concéntricos</option>
+            <option value="ejercicio-5.js">Ejercicio 5: Tablero de Dardos</option>
+            <option value="ejercicio-7.js">Ejercicio 7: Gráfico de Torta Básica</option>
+            <option value="ejercicio-8.js">Ejercicio 8: Gráfico de Torta con Etiquetas</option>
+            <option value="ejercicio-9.js">Ejercicio 9: Líneas de Grosor Creciente</option>
+            <option value="ejercicio-10.js">Ejercicio 10: Líneas Quebradas (LineCap y LineJoin)</option>
+            <option value="ejercicio-11.js">Ejercicio 11: Grilla de Diagonales Punteadas</option>
+        </select>
+    </div>
+
+    <!-- Contenedor donde se montará dinámicamente el canvas del ejercicio -->
+    <div id="app"></div>
+
+    <!-- Cargamos la base MVC obligatoria -->
+    <script src="MVCCanvas.js"></script>
+
+    <script>
+        // Lógica para cargar dinámicamente el archivo del ejercicio seleccionado
+        document.getElementById('selector').addEventListener('change', function() {
+            let archivo = this.value;
+            let contenedor = document.getElementById('app');
+            contenedor.innerHTML = ''; // Limpiamos el canvas anterior
+
+            if (archivo) {
+                // Eliminamos script anterior si existía para evitar superposiciones
+                let scriptAnterior = document.getElementById('script-ejercicio');
+                if (scriptAnterior) scriptAnterior.remove();
+
+                // Creamos y cargamos el nuevo script del ejercicio
+                let script = document.createElement('script');
+                script.id = 'script-ejercicio';
+                script.src = archivo;
+                document.body.appendChild(script);
+            }
+        });
+    </script>
+</body>
+</html>
