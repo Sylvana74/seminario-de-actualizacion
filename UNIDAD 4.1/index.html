@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <title>Seminario - Guía de Ejercicios</title>
@@ -24,28 +24,43 @@
             <option value="ejercicio-9.js">Ejercicio 9: Líneas de Grosor Creciente</option>
             <option value="ejercicio-10.js">Ejercicio 10: Líneas Quebradas (LineCap y LineJoin)</option>
             <option value="ejercicio-11.js">Ejercicio 11: Grilla de Diagonales Punteadas</option>
+            <option value="ejercicio-13.js">Ejercicio 13: Tablero de Ajedrez con Colores RGB Dinámicos</option>
+            <option value="ejercicio-14.js">Ejercicio 14: Gradiente Lineal Horizontal</option>
+            <option value="ejercicio-16.js">Ejercicio 16: Gradiente Radial</option>
+            <option value="ejercicio-20.js">Ejercicio 20: Relleno con Patrón de Imagen</option>
+            <option value="ejercicio-20-bis.js">Ejercicio 20-bis: Relleno con Patrón de Imagen y Escalado</option>
+            <option value="ejercicio-25.js">Ejercicio 25: Relleno con Patrón de Imagen y Rotación</option>
+            <option value="ejercicio-27.js">Ejercicio 27: Relleno con Patrón de Imagen y Traslación</option>
+            <option value="ejercicio-30.js">Ejercicio 30: Transformación Geométrica - Escalado</option>
+            <option value="ejercicio-31.js">Ejercicio 31: Combinación de Transformaciones</option>
         </select>
     </div>
 
-    <!-- Contenedor donde se montará dinámicamente el canvas del ejercicio -->
+    <!-- canvas del ejercicio -->
     <div id="app"></div>
 
-    <!-- Cargamos la base MVC obligatoria -->
+    <!--Cargamos la base MVC obligatoria-->
+     
     <script src="MVCCanvas.js"></script>
 
     <script>
-        // Lógica para cargar dinámicamente el archivo del ejercicio seleccionado
         document.getElementById('selector').addEventListener('change', function() {
             let archivo = this.value;
             let contenedor = document.getElementById('app');
-            contenedor.innerHTML = ''; // Limpiamos el canvas anterior
+            
+            // 1. Limpiamos por completo el contenedor anterior
+            if (contenedor) {
+                contenedor.innerHTML = ''; 
+            }
 
+        
+            let scriptAnterior = document.getElementById('script-ejercicio');
+            if (scriptAnterior) {
+                scriptAnterior.remove();
+            }
+
+            // Creamos e inyectamos el nuevo script solo si se seleccionó uno válido
             if (archivo) {
-                // Eliminamos script anterior si existía para evitar superposiciones
-                let scriptAnterior = document.getElementById('script-ejercicio');
-                if (scriptAnterior) scriptAnterior.remove();
-
-                // Creamos y cargamos el nuevo script del ejercicio
                 let script = document.createElement('script');
                 script.id = 'script-ejercicio';
                 script.src = archivo;

@@ -25,7 +25,7 @@ function main() {
             context.arc(cx, cy, r, anguloActual, anguloFin);
             context.lineTo(cx, cy);
             context.closePath();
-            context.stroke(); // Opcional: fill() si deseas rellenarlo
+            context.stroke(); // fill() para rellenarlo
 
             // 2. Calcular posición para ubicar el texto del porcentaje en el medio de la porción
             let anguloMedio = anguloActual + (anguloPorcion / 2);
